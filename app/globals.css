@@ -29,9 +29,11 @@ body {
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 400px;
+  width: 200px;
   height: 100vh;
   background-color: #F1F5FA;
+  padding: 0 12px;
+  box-sizing: border-box;
 }
 
 .finance{
@@ -39,41 +41,36 @@ body {
   font-weight: bold;
 }
 
-.sidebar div {
+.sidebar > * {
   display: flex;
   flex-direction: row;
-  margin-left: 15px;
+  align-items: center;
   margin-top: 20px;
 }
 
-.sidebar img {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
+.sidebar-icons{
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .sidebar h1 {
   font-size: 24px;
   margin: 0;
-  align-self: center;
 }
 
 .sidebar h2 {
   margin: 0;
-  align-self: center;
 }
 
-.logo-container img{
-  width: 30px;
-  height: 30px;
+.sidebar > .active {
+  background-color: #e8f0ff;
+  color: #2563eb;
+  border-radius: 10px;
 }
 
-.logo-container {
-  margin-top: 20px;
-  width: 100px;
-}
-
-.movimenti-container{
-  margin-top: 20px;
-  width: 100px;
+.sidebar-link {
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
