@@ -42,7 +42,7 @@ export default function Sidebar() {
                     />
                 </div>
 
-                <h2 className="finance">Dashboard</h2>
+                <h2>Dashboard</h2>
             </Link>
 
 
@@ -64,7 +64,7 @@ export default function Sidebar() {
                     />
                 </div>
 
-                <h2 className="finance">Movimenti</h2>
+                <h2>Movimenti</h2>
             </Link>
 
             <Link
@@ -85,7 +85,7 @@ export default function Sidebar() {
                     />
                 </div>
 
-                <h2 className="finance">Conti</h2>
+                <h2>Conti</h2>
             </Link>
 
             <Link
@@ -105,7 +105,7 @@ export default function Sidebar() {
                         loading="eager"
                     />
                 </div>
-                <h2 className="finance">Budget</h2>
+                <h2>Budget</h2>
             </Link>
 
             <Link
@@ -125,7 +125,7 @@ export default function Sidebar() {
                         loading="eager"
                     />
                 </div>
-                <h2 className="finance">Statistiche</h2>
+                <h2>Statistiche</h2>
             </Link>
 
             <Link
@@ -145,7 +145,7 @@ export default function Sidebar() {
                         loading="eager"
                     />
                 </div>
-                <h2 className="finance">Obiettivi</h2>
+                <h2>Obiettivi</h2>
             </Link>
 
             <Link
@@ -165,7 +165,7 @@ export default function Sidebar() {
                         loading="eager"
                     />
                 </div>
-                <h2 className="finance">Impostazioni</h2>
+                <h2>Impostazioni</h2>
             </Link>
         </div>
     );

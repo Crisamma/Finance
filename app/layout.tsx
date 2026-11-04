@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Manrope } from "next/font/google";
+import { Inter } from "next/font/google";
 
-const manrope = Manrope({
+const manrope = Inter({
   subsets: ["latin"],
 });
 
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className={`${manrope.className} min-h-full flex flex-col`}>
+      <body className={manrope.className}>
         {children}
       </body>
     </html>
