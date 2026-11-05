@@ -11,7 +11,7 @@ type Conto = {
   image: File | string;
 };
 
-export default function Conti() {
+export default function Conti({ username }: { username: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [conti, setConti] = useState<Conto[]>([]);
   const [nome, setNome] = useState("");
@@ -32,7 +32,7 @@ export default function Conti() {
   return (
     <main className="min-h-screen bg-white">
 
-      <Sidebar />
+      <Sidebar username={username} />
 
       <div className="main-contentConti">
 
