@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sidebar from "../sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { supabase } from "@/lib/supabase/client";
@@ -23,7 +23,11 @@ export default function Conti() {
   const [includi, setIncludi] = useState(true);
   const [conti, setConti] = useState<Conto[]>([]);
   const [modalAperto, setModalAperto] = useState(false);
-  const [patrimonioTotale, setPatrimonioTotale] = useState(0);
+  const [menuAperto, setMenuAperto] = useState<string | null>(null);
+  const [contoSelezionato, setContoSelezionato] = useState<string | null>(null);
+  const [modalMode, setModalMode] = useState<"creazione" | "modifica">("creazione");
+
+  const menuRef = useRef<HTMLDivElement>(null);
 
   type Conto = {
     id: string;
@@ -45,32 +49,71 @@ export default function Conti() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
-      .from("conti")
-      .insert([{
-        user_id: user.id,
-        Nome: nome,
-        Tipo: tipo,
-        Valuta: valuta,
-        Saldo: saldo,
-        ultime_4_cifre: ultime4Cifre,
-        colore: colore,
-        includi_patrimonio: includi,
-        //created_at: created_at,
-      }]);
+    if (modalMode === "creazione") {
+      const { error } = await supabase
+        .from("conti")
+        .insert([{
+          user_id: user.id,
+          Nome: nome,
+          Tipo: tipo,
+          Valuta: valuta,
+          Saldo: saldo,
+          ultime_4_cifre: ultime4Cifre,
+          colore: colore,
+          includi_patrimonio: includi,
+          //created_at: created_at,
+        }]);
 
+      if (error) {
+        console.log("ID utente:", user?.id);
+        console.error("Errore salvataggio conto:", error);
+        return;
+      }
+    } else if (modalMode === "modifica") {
+      const { error } = await supabase
+        .from("conti")
+        .update({
+          user_id: user.id,
+          Nome: nome,
+          Tipo: tipo,
+          Valuta: valuta,
+          Saldo: saldo,
+          ultime_4_cifre: ultime4Cifre,
+          colore: colore,
+          includi_patrimonio: includi,
+          //created_at: created_at,
+        })
+        .eq("id", contoSelezionato);
 
-    if (error) {
-      console.log("ID utente:", user?.id);
-      console.error("Errore salvataggio conto:", error);
-      return;
+      if (error) {
+        console.log("ID utente:", user?.id);
+        console.error("Errore salvataggio conto:", error);
+        return;
+      }
+
+      setConti(conti.map((conto) => {
+        if (conto.id === contoSelezionato) {
+          return {
+            ...conto,
+            Nome: nome,
+            Tipo: tipo,
+            Valuta: valuta,
+            Saldo: saldo,
+            ultime_4_cifre: ultime4Cifre,
+            colore: colore,
+            includi_patrimonio: includi
+          };
+        }
+
+        return conto;
+      }));
     }
-
 
     console.log("Pulsante premuto!");
     setModalAperto(false);
   }
 
+  //funzione per convertire la valuta in simbolo
   function valutaConto(valutaConto: string) {
     let valutaCorrente = valutaConto;
     switch (valutaCorrente) {
@@ -95,6 +138,7 @@ export default function Conti() {
     return valutaCorrente;
   }
 
+  //funzione per controllare il tipo di conto e restituire la stringa corretta
   function controlloTipo(tipoConto: string, ultimeCifre: string | null) {
     switch (tipoConto) {
       case "corrente":
@@ -121,6 +165,7 @@ export default function Conti() {
     return totalePatrimonio;
   }
 
+  //calcolo della liquidità
   function calcoloLiquidita() {
     const totaleLiquidita = conti.filter(conto => conto.Tipo === "corrente" || conto.Tipo === "carta" || conto.Tipo === "contanti").reduce((accumulatore, conto) => {
       return accumulatore + conto.Saldo;
@@ -128,12 +173,62 @@ export default function Conti() {
     return totaleLiquidita;
   }
 
+  //calcolo dei risparmi e investimenti
   function calcoloRisparmi() {
     const totaleRisparmi = conti.filter(conto => conto.Tipo === "risparmio" || conto.Tipo === "investimenti").reduce((accumulatore, conto) => {
       return accumulatore + conto.Saldo;
     }, 0);
     return totaleRisparmi;
   }
+
+  async function eliminaConto(id: string) {
+    const { error } = await supabase
+      .from("conti")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setConti(conti.filter((conto) =>
+      conto.id !== id
+    ));
+
+    setMenuAperto(null);
+  }
+
+  // Funzione per modificare un conto
+  function modificaConto(conto: Conto) {
+    setContoSelezionato(conto.id)
+
+    setNome(conto.Nome);
+    setTipo(conto.Tipo);
+    setValuta(conto.Valuta);
+    setSaldo(conto.Saldo);
+    setultime4Cifre(conto.ultime_4_cifre ?? "");
+    setColore(conto.colore);
+    setIncludi(conto.includi_patrimonio);
+
+    setModalMode("modifica")
+    setModalAperto(true)
+  }
+
+  // Funzione per chiudere il menu a tendina quando si clicca fuori
+  useEffect(() => {
+    function chiudiMenu(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuAperto(null);
+      }
+    }
+
+    document.addEventListener("mousedown", chiudiMenu);
+
+    return () => {
+      document.removeEventListener("mousedown", chiudiMenu);
+    };
+  }, []);
 
   useEffect(() => {
     async function caricaConti() {
@@ -166,7 +261,10 @@ export default function Conti() {
               <h1 className="conti-title">Conti</h1>
               <p className="conti-subtitle">Tutti i tuoi conti e i loro saldi in un unico posto.</p>
             </div>
-            <button className="conti-btn-primary" onClick={() => setModalAperto(true)}>
+            <button className="conti-btn-primary" onClick={() => {
+              setModalAperto(true);
+              setModalMode("creazione");
+            }}>
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="conti-ic" style={{ strokeWidth: 2.4 }}>
                 <path d="M12 5v14M5 12h14" />
               </svg>
@@ -225,7 +323,7 @@ export default function Conti() {
           </nav>
 
           {/* Griglia dei conti */}
-          <section className="conti-grid" aria-label="Elenco conti">
+          <section className="conti-grid" aria-label="Elenco conti" ref={menuRef}>
             {/* Conto corrente */}
             {conti.map((conto) => (
 
@@ -240,11 +338,29 @@ export default function Conti() {
                     <h2>{conto.Nome}</h2>
                     <span>{controlloTipo(conto.Tipo, conto.ultime_4_cifre)}</span>
                   </div>
-                  <button type="button" className="conti-more" aria-label="Opzioni conto principale">
-                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
-                      <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
-                    </svg>
-                  </button>
+                  <div className="conti-menu-container">
+                    <button type="button" className="conti-more" aria-label="Opzioni conto principale"
+                      onClick={() => setMenuAperto(menuAperto === conto.id ? null : conto.id)}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
+                        <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
+                      </svg>
+                    </button>
+                    {menuAperto === conto.id && (
+                      <div className="conti-dropdown">
+                        <button type="button" onClick={() => {
+                          modificaConto(conto);
+                        }}>
+                          Modifica
+                        </button>
+
+                        <button type="button" onClick={() => {
+                          eliminaConto(conto.id);
+                        }}>
+                          Elimina
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="conti-balance">{conto.Saldo} {valutaConto(conto.Valuta)}</div>
                 <div className="conti-card-foot">

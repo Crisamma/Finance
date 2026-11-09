@@ -1764,6 +1764,20 @@ main {
   color: var(--text);
 }
 
+.conti-menu-container {
+    position: relative;
+}
+
+.conti-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+
 .conti-balance {
   font-size: 30px;
   line-height: 1.1;
@@ -1817,6 +1831,7 @@ main {
   text-align: center;
   text-decoration: none;
   transition: background-color 0.15s, border-color 0.15s;
+  cursor: pointer;
 }
 
 .conti-add:hover {
@@ -2103,4 +2118,31 @@ main {
   .conti-modal * {
     transition: none !important;
   }
+}
+
+.conti-dropdown {
+    position: absolute;
+    right: 0;
+    top: 40px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+    padding: 6px;
+    background: white;
+    border: 1px solid #e7eaf0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.conti-dropdown button {
+    padding: 10px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.conti-dropdown button:hover {
+    background: #f1f5f9;
 }
