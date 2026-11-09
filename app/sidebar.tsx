@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useUser } from "@/context/UserContext";
 
 type NavItem = {
   href: string;
@@ -21,8 +22,9 @@ const NAV: NavItem[] = [
   { href: "/impostazioni", label: "Impostazioni", icon: "settings", alt: "Immagine Impostazioni" },
 ];
 
-export default function Sidebar({ username }: { username: string }) {
+export default function Sidebar() {
   const pathname = usePathname(); // percorso della pagina corrente, ad esempio "/" o "/movimenti"
+  const { username } = useUser(); // ottieni il nome utente 
 
   return (
     <aside className="sidebar">
@@ -34,6 +36,7 @@ export default function Sidebar({ username }: { username: string }) {
             alt="Logo Finance"
             width={30}
             height={30}
+            style={{ width: "34px", height: "auto" }}
             loading="eager"
           />
         </div>
