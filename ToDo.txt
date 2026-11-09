@@ -1,3 +1,16 @@
 CONTI:
 [] Inserire ORDER BY Saldo, nome
 []
+
+
+HOME:
+[] Aggiungere commenti "Hai speso il 12% in meno rispetto al mese scorso: ottimo lavoro. Il budget Svago è però al 92%." (commentato)
+[] Aggiungere mesi precedenti a entrate, uscite, risparmio (commentato)
+[] Aggiungere grafica mesi precedenti in Saldo totale, entrate, uscite, risparmio (commentato)
+[] Aggiungere Spese per categoria (commentato)
+[] Aggiornare grafico "Entrate e Uscite" (commentato)
+[] Aggiornare ultimi movimenti (commentato)
+[] Aggiornare Budget (commentato)
+[] Aggiornare "Obiettivi di risparmio" (commentato)
+[] Aggiornare bottone Settimana Mese Anno
+[] 

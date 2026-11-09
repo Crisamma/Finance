@@ -22,6 +22,8 @@ export default function Conti() {
   const [colore, setColore] = useState("blu");
   const [includi, setIncludi] = useState(true);
   const [conti, setConti] = useState<Conto[]>([]);
+  const [modalAperto, setModalAperto] = useState(false);
+  const [patrimonioTotale, setPatrimonioTotale] = useState(0);
 
   type Conto = {
     id: string;
@@ -66,6 +68,7 @@ export default function Conti() {
 
 
     console.log("Pulsante premuto!");
+    setModalAperto(false);
   }
 
   function valutaConto(valutaConto: string) {
@@ -90,6 +93,24 @@ export default function Conti() {
         break;
     }
     return valutaCorrente;
+  }
+
+  function controlloTipo(tipoConto: string, ultimeCifre: string | null) {
+    switch (tipoConto) {
+      case "corrente":
+        let contoCorrente = "Conto corrente " + (ultimeCifre ? " · •••• " + ultimeCifre : "");
+        return contoCorrente;
+      case "risparmio":
+        return "Conto di risparmio";
+      case "carta":
+        return "Carta di credito";
+      case "contanti":
+        return "Contanti";
+      case "investimenti":
+        return "Investimenti";
+      default:
+        return "Conto Corrente";
+    }
   }
 
   useEffect(() => {
@@ -123,12 +144,12 @@ export default function Conti() {
               <h1 className="conti-title">Conti</h1>
               <p className="conti-subtitle">Tutti i tuoi conti e i loro saldi in un unico posto.</p>
             </div>
-            <a href="#nuovo-conto-modal" className="conti-btn-primary">
+            <button className="conti-btn-primary" onClick={() => setModalAperto(true)}>
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="conti-ic" style={{ strokeWidth: 2.4 }}>
                 <path d="M12 5v14M5 12h14" />
               </svg>
               Nuovo conto
-            </a>
+            </button>
           </header>
 
           {/* Riepilogo */}
@@ -185,38 +206,38 @@ export default function Conti() {
           <section className="conti-grid" aria-label="Elenco conti">
             {/* Conto corrente */}
             {conti.map((conto) => (
-              
-            <article key={conto.id} className="conti-card">
-              <div className="conti-card-top">
-                <span className="conti-chip info">
-                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
-                    <path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" />
-                  </svg>
-                </span>
-                <div className="conti-card-name">
-                  <h2>{conto.Nome}</h2>
-                  <span>Conto corrente · •••• {conto.ultime_4_cifre}</span>
+
+              <article key={conto.id} className="conti-card">
+                <div className="conti-card-top">
+                  <span className="conti-chip info">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
+                      <path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" />
+                    </svg>
+                  </span>
+                  <div className="conti-card-name">
+                    <h2>{conto.Nome}</h2>
+                    <span>{controlloTipo(conto.Tipo, conto.ultime_4_cifre)}</span>
+                  </div>
+                  <button type="button" className="conti-more" aria-label="Opzioni conto principale">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
+                      <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
+                    </svg>
+                  </button>
                 </div>
-                <button type="button" className="conti-more" aria-label="Opzioni conto principale">
-                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
-                    <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
-                  </svg>
-                </button>
-              </div>
-              <div className="conti-balance">{conto.Saldo} {valutaConto(conto.Valuta)}</div>
-              <div className="conti-card-foot">
-                <span className="conti-badge pos">+1,8% questo mese</span>
-                <span className="conti-muted">Aggiornato oggi</span>
-              </div>
-              <svg viewBox="0 0 160 36" width="100%" height="36" preserveAspectRatio="none" aria-hidden="true" className="conti-spark">
-                <polygon points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9 160,36 0,36" style={{ fill: "var(--pos-line)", fillOpacity: 0.12 }} />
-                <polyline points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9" style={{ fill: "none", stroke: "var(--pos-line)", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }} vectorEffect="non-scaling-stroke" />
-              </svg>
-            </article>
+                <div className="conti-balance">{conto.Saldo} {valutaConto(conto.Valuta)}</div>
+                <div className="conti-card-foot">
+                  <span className="conti-badge pos">+1,8% questo mese</span>
+                  <span className="conti-muted">Aggiornato oggi</span>
+                </div>
+                <svg viewBox="0 0 160 36" width="100%" height="36" preserveAspectRatio="none" aria-hidden="true" className="conti-spark">
+                  <polygon points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9 160,36 0,36" style={{ fill: "var(--pos-line)", fillOpacity: 0.12 }} />
+                  <polyline points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9" style={{ fill: "none", stroke: "var(--pos-line)", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }} vectorEffect="non-scaling-stroke" />
+                </svg>
+              </article>
             ))}
 
             {/* Card "aggiungi" */}
-            <a href="#nuovo-conto-modal" className="conti-add">
+            <button className="conti-add" onClick={() => setModalAperto(true)}>
               <span className="conti-add-icon">
                 <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" className="conti-ic" style={{ strokeWidth: 2.2 }}>
                   <path d="M12 5v14M5 12h14" />
@@ -224,130 +245,134 @@ export default function Conti() {
               </span>
               <strong>Aggiungi un conto</strong>
               <span className="conti-muted">Conto corrente, carta, contanti…</span>
-            </a>
+            </button>
           </section>
         </div>
       </div>
 
-      {/* Finestra "Nuovo conto": si apre con :target, nessun JavaScript */}
-      <div id="nuovo-conto-modal" className="conti-modal" role="dialog" aria-modal="true" aria-labelledby="nuovo-conto-titolo">
-        <a href="#" className="conti-modal-backdrop" aria-label="Chiudi finestra" tabIndex={-1} />
+      {/* Finestra "Nuovo conto" */}
+      {modalAperto && (
+        <div id="nuovo-conto-modal" className="conti-modal" role="dialog" aria-modal="true" aria-labelledby="nuovo-conto-titolo">
+                  <div
+            className="conti-modal-backdrop"
+            onClick={() => setModalAperto(false)}
+        />
+          <div className="conti-modal-box">
+            <button type="button" className="conti-modal-close" onClick={() => setModalAperto(false)} aria-label="Chiudi">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
 
-        <div className="conti-modal-box">
-          <a href="#" className="conti-modal-close" aria-label="Chiudi">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </a>
+            <h2 id="nuovo-conto-titolo" className="conti-modal-title">Nuovo conto</h2>
+            <p className="conti-modal-sub">Aggiungi un conto per tenere traccia del suo saldo.</p>
 
-          <h2 id="nuovo-conto-titolo" className="conti-modal-title">Nuovo conto</h2>
-          <p className="conti-modal-sub">Aggiungi un conto per tenere traccia del suo saldo.</p>
+            <form className="conti-form">
+              <div className="conti-form-section">
+                <h3>Informazioni</h3>
 
-          <form className="conti-form">
-            <div className="conti-form-section">
-              <h3>Informazioni</h3>
-
-              <div className="conti-field">
-                <label htmlFor="conto-nome">Nome del conto</label>
-                <input
-                  id="conto-nome" name="nome" type="text" placeholder="Es. Conto principale" required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                />
-              </div>
-
-              <div className="conti-field-row">
                 <div className="conti-field">
-                  <label htmlFor="conto-tipo">Tipo</label>
-                  <select
-                    id="conto-tipo" name="tipo"
-                    value={tipo}
-                    onChange={(e) => setTipo(e.target.value)}
-                  >
-                    <option value="corrente">Conto corrente</option>
-                    <option value="risparmio">Risparmio</option>
-                    <option value="carta">Carta di credito</option>
-                    <option value="contanti">Contanti</option>
-                    <option value="investimenti">Investimenti</option>
-                  </select>
-                </div>
-                <div className="conti-field">
-                  <label htmlFor="conto-valuta">Valuta</label>
-                  <select
-                    id="conto-valuta" name="valuta"
-                    value={valuta}
-                    onChange={(e) => setValuta(e.target.value)}
-                  >
-                    <option value="EUR">Euro (€)</option>
-                    <option value="USD">Dollaro ($)</option>
-                    <option value="GBP">Sterlina (£)</option>
-                    <option value="CHF">Franco (CHF)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="conti-field-row">
-                <div className="conti-field">
-                  <label htmlFor="conto-saldo">Saldo iniziale</label>
+                  <label htmlFor="conto-nome">Nome del conto</label>
                   <input
-                    id="conto-saldo" name="saldo" type="number" step="0.01" placeholder="0,00"
-                    value={saldo}
-                    onChange={(e) => setSaldo(parseFloat(e.target.value))}
+                    id="conto-nome" name="nome" type="text" placeholder="Es. Conto principale" required
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
                   />
                 </div>
-                <div className="conti-field">
-                  <label htmlFor="conto-iban">Ultime 4 cifre (facoltativo)</label>
-                  <input
-                    id="conto-iban" name="ultime4" type="text" inputMode="numeric" maxLength={4} placeholder="1234"
-                    value={ultime4Cifre}
-                    onChange={(e) => setultime4Cifre(e.target.value)}
-                  />
+
+                <div className="conti-field-row">
+                  <div className="conti-field">
+                    <label htmlFor="conto-tipo">Tipo</label>
+                    <select
+                      id="conto-tipo" name="tipo"
+                      value={tipo}
+                      onChange={(e) => setTipo(e.target.value)}
+                    >
+                      <option value="corrente">Conto corrente</option>
+                      <option value="risparmio">Risparmio</option>
+                      <option value="carta">Carta di credito</option>
+                      <option value="contanti">Contanti</option>
+                      <option value="investimenti">Investimenti</option>
+                    </select>
+                  </div>
+                  <div className="conti-field">
+                    <label htmlFor="conto-valuta">Valuta</label>
+                    <select
+                      id="conto-valuta" name="valuta"
+                      value={valuta}
+                      onChange={(e) => setValuta(e.target.value)}
+                    >
+                      <option value="EUR">Euro (€)</option>
+                      <option value="USD">Dollaro ($)</option>
+                      <option value="GBP">Sterlina (£)</option>
+                      <option value="CHF">Franco (CHF)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="conti-field-row">
+                  <div className="conti-field">
+                    <label htmlFor="conto-saldo">Saldo iniziale</label>
+                    <input
+                      id="conto-saldo" name="saldo" type="number" step="0.01" placeholder="0,00"
+                      value={saldo}
+                      onChange={(e) => setSaldo(parseFloat(e.target.value))}
+                    />
+                  </div>
+                  <div className="conti-field">
+                    <label htmlFor="conto-iban">Ultime 4 cifre (facoltativo)</label>
+                    <input
+                      id="conto-iban" name="ultime4" type="text" inputMode="numeric" maxLength={4} placeholder="1234"
+                      value={ultime4Cifre}
+                      onChange={(e) => setultime4Cifre(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="conti-form-section">
-              <h3>Aspetto</h3>
-              <fieldset className="conti-swatches">
-                <legend className="conti-sr">Colore del conto</legend>
+              <div className="conti-form-section">
+                <h3>Aspetto</h3>
+                <fieldset className="conti-swatches">
+                  <legend className="conti-sr">Colore del conto</legend>
 
-                <input type="radio" name="colore" id="col-blu" value="blu" onChange={(e) => setColore(e.target.value)} />
-                <label htmlFor="col-blu" className="sw blu"><span className="conti-sr">Blu</span></label>
+                  <input type="radio" name="colore" id="col-blu" value="blu" onChange={(e) => setColore(e.target.value)} />
+                  <label htmlFor="col-blu" className="sw blu"><span className="conti-sr">Blu</span></label>
 
-                <input type="radio" name="colore" id="col-verde" value="verde" onChange={(e) => setColore(e.target.value)} />
-                <label htmlFor="col-verde" className="sw verde"><span className="conti-sr">Verde</span></label>
+                  <input type="radio" name="colore" id="col-verde" value="verde" onChange={(e) => setColore(e.target.value)} />
+                  <label htmlFor="col-verde" className="sw verde"><span className="conti-sr">Verde</span></label>
 
-                <input type="radio" name="colore" id="col-viola" value="viola" onChange={(e) => setColore(e.target.value)} />
-                <label htmlFor="col-viola" className="sw viola"><span className="conti-sr">Viola</span></label>
+                  <input type="radio" name="colore" id="col-viola" value="viola" onChange={(e) => setColore(e.target.value)} />
+                  <label htmlFor="col-viola" className="sw viola"><span className="conti-sr">Viola</span></label>
 
-                <input type="radio" name="colore" id="col-arancio" value="arancio" onChange={(e) => setColore(e.target.value)} />
-                <label htmlFor="col-arancio" className="sw arancio"><span className="conti-sr">Arancione</span></label>
+                  <input type="radio" name="colore" id="col-arancio" value="arancio" onChange={(e) => setColore(e.target.value)} />
+                  <label htmlFor="col-arancio" className="sw arancio"><span className="conti-sr">Arancione</span></label>
 
-                <input type="radio" name="colore" id="col-grigio" value="grigio" onChange={(e) => setColore(e.target.value)} />
-                <label htmlFor="col-grigio" className="sw grigio"><span className="conti-sr">Grigio</span></label>
-              </fieldset>
+                  <input type="radio" name="colore" id="col-grigio" value="grigio" onChange={(e) => setColore(e.target.value)} />
+                  <label htmlFor="col-grigio" className="sw grigio"><span className="conti-sr">Grigio</span></label>
+                </fieldset>
 
-              <label className="conti-switch" htmlFor="conto-includi">
-                <input
-                  id="conto-includi" name="includi" type="checkbox"
-                  checked={includi}
-                  onChange={(e) => setIncludi(e.target.checked)}
-                />
-                <span className="conti-switch-track" aria-hidden="true" />
-                <span className="conti-switch-text">
-                  <strong>Includi nel patrimonio totale</strong>
-                  <span>Il saldo verrà sommato nel riepilogo della dashboard.</span>
-                </span>
-              </label>
-            </div>
+                <label className="conti-switch" htmlFor="conto-includi">
+                  <input
+                    id="conto-includi" name="includi" type="checkbox"
+                    checked={includi}
+                    onChange={(e) => setIncludi(e.target.checked)}
+                  />
+                  <span className="conti-switch-track" aria-hidden="true" />
+                  <span className="conti-switch-text">
+                    <strong>Includi nel patrimonio totale</strong>
+                    <span>Il saldo verrà sommato nel riepilogo della dashboard.</span>
+                  </span>
+                </label>
+              </div>
 
-            <div className="conti-modal-actions">
-              <a href="#" className="conti-btn-secondary">Annulla</a>
-              <button onClick={salvaConto} type="submit" className="conti-btn-primary" >Salva conto</button>
-            </div>
-          </form>
+              <div className="conti-modal-actions">
+                <button type="button" className="conti-btn-secondary" onClick={() => setModalAperto(false)}> Annulla </button>
+                <button onClick={salvaConto} type="submit" className="conti-btn-primary" >Salva conto</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </main>
   );
 }
