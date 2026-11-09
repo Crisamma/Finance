@@ -113,6 +113,28 @@ export default function Conti() {
     }
   }
 
+  //calcolo del patrimonio totale
+  function calcoloPatrimonio() {
+    const totalePatrimonio = conti.reduce((accumulatore, conto) => {
+      return accumulatore + conto.Saldo;
+    }, 0);
+    return totalePatrimonio;
+  }
+
+  function calcoloLiquidita() {
+    const totaleLiquidita = conti.filter(conto => conto.Tipo === "corrente" || conto.Tipo === "carta" || conto.Tipo === "contanti").reduce((accumulatore, conto) => {
+      return accumulatore + conto.Saldo;
+    }, 0);
+    return totaleLiquidita;
+  }
+
+  function calcoloRisparmi() {
+    const totaleRisparmi = conti.filter(conto => conto.Tipo === "risparmio" || conto.Tipo === "investimenti").reduce((accumulatore, conto) => {
+      return accumulatore + conto.Saldo;
+    }, 0);
+    return totaleRisparmi;
+  }
+
   useEffect(() => {
     async function caricaConti() {
       // Recuperiamo i conti da Supabase
@@ -161,8 +183,8 @@ export default function Conti() {
                 </svg>
                 Patrimonio totale
               </div>
-              <div className="conti-total-value">€ 9.100,45</div>
-              <div className="conti-total-meta">5 conti attivi · aggiornato oggi</div>
+              <div className="conti-total-value">€ {calcoloPatrimonio().toFixed(2)}</div>
+              <div className="conti-total-meta">{conti.length} conti attivi · aggiornato oggi</div>
             </div>
 
             <div className="conti-stat">
@@ -174,7 +196,7 @@ export default function Conti() {
                   </svg>
                 </span>
               </div>
-              <div className="conti-stat-value">€ 2.619,90</div>
+              <div className="conti-stat-value">€ {calcoloLiquidita().toFixed(2)}</div>
               <div className="conti-stat-sub">Correnti, carte e contanti</div>
             </div>
 
@@ -187,8 +209,8 @@ export default function Conti() {
                   </svg>
                 </span>
               </div>
-              <div className="conti-stat-value">€ 6.480,55</div>
-              <div className="conti-stat-sub">71% del patrimonio</div>
+              <div className="conti-stat-value">€ {calcoloRisparmi().toFixed(2)}</div>
+              <div className="conti-stat-sub">{((calcoloRisparmi() / calcoloPatrimonio()) * 100).toFixed(1)}% del patrimonio</div>
             </div>
           </section>
 
@@ -253,10 +275,10 @@ export default function Conti() {
       {/* Finestra "Nuovo conto" */}
       {modalAperto && (
         <div id="nuovo-conto-modal" className="conti-modal" role="dialog" aria-modal="true" aria-labelledby="nuovo-conto-titolo">
-                  <div
+          <div
             className="conti-modal-backdrop"
             onClick={() => setModalAperto(false)}
-        />
+          />
           <div className="conti-modal-box">
             <button type="button" className="conti-modal-close" onClick={() => setModalAperto(false)} aria-label="Chiudi">
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
