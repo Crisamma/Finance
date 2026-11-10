@@ -340,8 +340,8 @@ export default function Conti() {
 
               <article key={conto.id} className="conti-card">
                 <div className="conti-card-top">
-                  <span className="conti-chip info">
-                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic" style={{ color: conto.colore }}>
+                  <span className="conti-chip info" style={{ backgroundColor: conto.colore + "33" }}>
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic" style={{ color: conto.colore}}>
                       <path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" />
                     </svg>
                   </span>
@@ -373,7 +373,7 @@ export default function Conti() {
                     )}
                   </div>
                 </div>
-                <div className="conti-balance">{conto.Saldo} {valutaConto(conto.Valuta)}</div>
+                <div className="conti-balance">{valutaConto(conto.Valuta)} {conto.Saldo}</div>
                 {/*<div className="conti-card-foot">
                   <span className="conti-badge pos">+1,8% questo mese</span>
                   <span className="conti-muted">Aggiornato oggi</span>
