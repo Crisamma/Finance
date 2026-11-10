@@ -4,14 +4,6 @@ import Sidebar from "../sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { supabase } from "@/lib/supabase/client";
 
-/*
-  Pagina CONTI: solo grafica, nessun JavaScript.
-  - Dati di esempio scritti direttamente nel markup: andranno sostituiti con i dati reali.
-  - La finestra "Nuovo conto" si apre/chiude solo con CSS (:target):
-    il link href="#nuovo-conto-modal" la apre, href="#" la chiude.
-  - Il form non è ancora collegato a nulla (TODO: salvataggio su Supabase).
-*/
-
 export default function Conti() {
 
   const [nome, setNome] = useState("");
@@ -19,13 +11,14 @@ export default function Conti() {
   const [valuta, setValuta] = useState("EUR");
   const [saldo, setSaldo] = useState(0);
   const [ultime4Cifre, setultime4Cifre] = useState("");
-  const [colore, setColore] = useState("blu");
+  const [colore, setColore] = useState("#3B6FE0");
   const [includi, setIncludi] = useState(true);
   const [conti, setConti] = useState<Conto[]>([]);
   const [modalAperto, setModalAperto] = useState(false);
   const [menuAperto, setMenuAperto] = useState<string | null>(null);
   const [contoSelezionato, setContoSelezionato] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<"creazione" | "modifica">("creazione");
+  const [filtroTipo, setFiltroTipo] = useState("tutti");
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -181,6 +174,24 @@ export default function Conti() {
     return totaleRisparmi;
   }
 
+  function filtraContiPerTipo(tipo: string) {
+    if (tipo === "tutti") {
+      return conti; 
+    }else if (tipo === "corrente") {
+      return conti.filter(conto => conto.Tipo === "corrente");
+    }else if (tipo === "risparmio") {
+      return conti.filter(conto => conto.Tipo === "risparmio");
+    }else if (tipo === "carte") {
+      return conti.filter(conto => conto.Tipo === "carte");
+    }else if (tipo === "contanti") {
+      return conti.filter(conto => conto.Tipo === "contanti");
+    }else if (tipo === "investimenti") {
+      return conti.filter(conto => conto.Tipo === "investimenti");
+    }
+
+    return conti.filter(conto => conto.Tipo === tipo);
+  }
+
   async function eliminaConto(id: string) {
     const { error } = await supabase
       .from("conti")
@@ -312,25 +323,25 @@ export default function Conti() {
             </div>
           </section>
 
-          {/* Filtri (solo grafica) */}
+          {/* Filtri conti aperti visualizzabili*/}
           <nav className="conti-filters" aria-label="Filtra per tipo di conto">
-            <a href="#" className="conti-pill on" aria-current="true">Tutti</a>
-            <a href="#" className="conti-pill">Correnti</a>
-            <a href="#" className="conti-pill">Risparmio</a>
-            <a href="#" className="conti-pill">Carte</a>
-            <a href="#" className="conti-pill">Contanti</a>
-            <a href="#" className="conti-pill">Investimenti</a>
+            <button onClick={() => setFiltroTipo("tutti")} className={filtroTipo === "tutti" ? "conti-pill on" : "conti-pill"} aria-current="true">Tutti</button>
+            <button onClick={() => setFiltroTipo("corrente")} className={filtroTipo === "corrente" ? "conti-pill on" : "conti-pill"}>Conto Corrente</button>
+            <button onClick={() => setFiltroTipo("risparmio")} className={filtroTipo === "risparmio" ? "conti-pill on" : "conti-pill"}>Risparmio</button>
+            <button onClick={() => setFiltroTipo("carte")} className={filtroTipo === "carte" ? "conti-pill on" : "conti-pill"}>Carte</button>
+            <button onClick={() => setFiltroTipo("contanti")} className={filtroTipo === "contanti" ? "conti-pill on" : "conti-pill"}>Contanti</button>
+            <button onClick={() => setFiltroTipo("investimenti")} className={filtroTipo === "investimenti" ? "conti-pill on" : "conti-pill"}>Investimenti</button>
           </nav>
 
           {/* Griglia dei conti */}
           <section className="conti-grid" aria-label="Elenco conti" ref={menuRef}>
             {/* Conto corrente */}
-            {conti.map((conto) => (
+            {filtraContiPerTipo(filtroTipo).map((conto) => (
 
               <article key={conto.id} className="conti-card">
                 <div className="conti-card-top">
                   <span className="conti-chip info">
-                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="conti-ic" style={{ color: conto.colore }}>
                       <path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18" />
                     </svg>
                   </span>
@@ -363,14 +374,14 @@ export default function Conti() {
                   </div>
                 </div>
                 <div className="conti-balance">{conto.Saldo} {valutaConto(conto.Valuta)}</div>
-                <div className="conti-card-foot">
+                {/*<div className="conti-card-foot">
                   <span className="conti-badge pos">+1,8% questo mese</span>
                   <span className="conti-muted">Aggiornato oggi</span>
                 </div>
                 <svg viewBox="0 0 160 36" width="100%" height="36" preserveAspectRatio="none" aria-hidden="true" className="conti-spark">
                   <polygon points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9 160,36 0,36" style={{ fill: "var(--pos-line)", fillOpacity: 0.12 }} />
                   <polyline points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9" style={{ fill: "none", stroke: "var(--pos-line)", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }} vectorEffect="non-scaling-stroke" />
-                </svg>
+                </svg>*/}
               </article>
             ))}
 
@@ -473,19 +484,19 @@ export default function Conti() {
                 <fieldset className="conti-swatches">
                   <legend className="conti-sr">Colore del conto</legend>
 
-                  <input type="radio" name="colore" id="col-blu" value="blu" onChange={(e) => setColore(e.target.value)} />
+                  <input type="radio" name="colore" id="col-blu" value="#3B6FE0" onChange={(e) => setColore(e.target.value)} />
                   <label htmlFor="col-blu" className="sw blu"><span className="conti-sr">Blu</span></label>
 
-                  <input type="radio" name="colore" id="col-verde" value="verde" onChange={(e) => setColore(e.target.value)} />
+                  <input type="radio" name="colore" id="col-verde" value="#0E9F6E" onChange={(e) => setColore(e.target.value)} />
                   <label htmlFor="col-verde" className="sw verde"><span className="conti-sr">Verde</span></label>
 
-                  <input type="radio" name="colore" id="col-viola" value="viola" onChange={(e) => setColore(e.target.value)} />
+                  <input type="radio" name="colore" id="col-viola" value="#8B5CF6" onChange={(e) => setColore(e.target.value)} />
                   <label htmlFor="col-viola" className="sw viola"><span className="conti-sr">Viola</span></label>
 
-                  <input type="radio" name="colore" id="col-arancio" value="arancio" onChange={(e) => setColore(e.target.value)} />
+                  <input type="radio" name="colore" id="col-arancio" value="#E8890C" onChange={(e) => setColore(e.target.value)} />
                   <label htmlFor="col-arancio" className="sw arancio"><span className="conti-sr">Arancione</span></label>
 
-                  <input type="radio" name="colore" id="col-grigio" value="grigio" onChange={(e) => setColore(e.target.value)} />
+                  <input type="radio" name="colore" id="col-grigio" value="#64748B" onChange={(e) => setColore(e.target.value)} />
                   <label htmlFor="col-grigio" className="sw grigio"><span className="conti-sr">Grigio</span></label>
                 </fieldset>
 

@@ -1,297 +1,384 @@
-import Image from "next/image";
+import Sidebar from "../sidebar";
 
 /*
-  Pagina MANUTENZIONE: un solo file, CSS incluso (nessuna modifica a globals.css).
-  Nessun JavaScript: le animazioni sono solo CSS.
-  Percorso consigliato: app/manutenzione/page.tsx
+  Pagina MOVIMENTI: solo grafica, nessun JavaScript.
+  - Dati di esempio scritti direttamente nel markup: andranno sostituiti con i dati reali.
+  - La finestra "Nuova transazione" si apre/chiude solo con CSS (:target):
+    il link href="#nuova-transazione-modal" la apre, href="#" la chiude.
+  - Filtri, ricerca e form non sono ancora collegati a nulla (TODO: Supabase).
+  - Per aggiungere un movimento copia un blocco <div className="mov-row"> ... </div>.
 */
 
-const css = `
-.manut-page {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  box-sizing: border-box;
-  background:
-    radial-gradient(900px 500px at 12% 8%, rgba(11, 122, 107, 0.14), transparent 60%),
-    radial-gradient(700px 480px at 92% 92%, rgba(59, 111, 224, 0.12), transparent 60%),
-    #f4f6fa;
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.manut-card {
-  width: 100%;
-  max-width: 520px;
-  box-sizing: border-box;
-  padding: 44px 36px 36px;
-  text-align: center;
-  background: #ffffff;
-  border: 1px solid #e4e9f1;
-  border-radius: 24px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 20px 50px rgba(15, 23, 42, 0.1);
-}
-
-.manut-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 32px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.manut-illustration {
-  position: relative;
-  width: 112px;
-  height: 112px;
-  margin: 0 auto 28px;
-  border-radius: 50%;
-  background: #ddf3ee;
-  color: #0b7a6b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.manut-illustration::before {
-  content: "";
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-  border: 2px solid rgba(11, 122, 107, 0.2);
-  animation: manut-pulse 2.4s ease-out infinite;
-}
-
-.manut-gear {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.manut-gear-big {
-  transform-origin: 28px 32px;
-  animation: manut-spin 9s linear infinite;
-}
-
-.manut-gear-small {
-  transform-origin: 56px 20px;
-  animation: manut-spin 6s linear infinite reverse;
-}
-
-.manut-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #fef0d6;
-  color: #9a4a06;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.manut-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #d97706;
-  animation: manut-blink 1.4s ease-in-out infinite;
-}
-
-.manut-title {
-  margin: 18px 0 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.manut-text {
-  margin: 12px auto 0;
-  max-width: 400px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #566176;
-}
-
-.manut-progress {
-  position: relative;
-  height: 8px;
-  margin: 30px auto 0;
-  max-width: 360px;
-  border-radius: 999px;
-  background: #eef2f7;
-  overflow: hidden;
-}
-
-.manut-progress::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 38%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0b7a6b, #0e9f6e);
-  animation: manut-slide 1.8s ease-in-out infinite;
-}
-
-.manut-note {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: #566176;
-}
-
-.manut-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.manut-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 46px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: filter 0.15s, background-color 0.15s;
-}
-
-.manut-btn.primary {
-  background: #0b7a6b;
-  color: #ffffff;
-}
-
-.manut-btn.primary:hover {
-  filter: brightness(1.1);
-}
-
-.manut-btn svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.manut-btn:focus-visible {
-  outline: 2px solid #3b6fe0;
-  outline-offset: 2px;
-}
-
-.manut-footer {
-  margin: 26px 0 0;
-  padding-top: 20px;
-  border-top: 1px solid #eef0f3;
-  font-size: 13px;
-  color: #566176;
-}
-
-@keyframes manut-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes manut-pulse {
-  0% { transform: scale(0.92); opacity: 0.9; }
-  100% { transform: scale(1.22); opacity: 0; }
-}
-
-@keyframes manut-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
-@keyframes manut-slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(263%); }
-}
-
-@media (max-width: 480px) {
-  .manut-card { padding: 36px 22px 28px; }
-  .manut-title { font-size: 25px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .manut-illustration::before,
-  .manut-gear-big,
-  .manut-gear-small,
-  .manut-dot,
-  .manut-progress::after {
-    animation: none;
-  }
-  .manut-progress::after { width: 38%; transform: translateX(80%); }
-}
-`;
-
-export default function Manutenzione() {
+export default function Movimenti() {
   return (
-    <main className="manut-page">
-      <style>{css}</style>
+    <main className="min-h-screen bg-white">
+      <Sidebar />
 
-      <div className="manut-card">
-        <div className="manut-brand">
-          <Image src="/images/logo3.png" alt="Logo Finance" width={30} height={30} style={{ width: "34px", height: "auto" }} priority />
-          <span>Finance</span>
+      <div className="main-content">
+        <div className="mov-page">
+          {/* Intestazione */}
+          <header className="mov-header">
+            <div>
+              <h1 className="mov-title">Movimenti</h1>
+              <p className="mov-subtitle">Tutte le tue entrate e uscite, in ordine di data.</p>
+            </div>
+            <div className="mov-header-actions">
+              <a href="#" className="mov-btn-secondary">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M12 3v12M7 10l5 5 5-5M4 20h16" />
+                </svg>
+                Esporta
+              </a>
+              <a href="#nuova-transazione-modal" className="mov-btn-primary">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic" style={{ strokeWidth: 2.4 }}>
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Nuova transazione
+              </a>
+            </div>
+          </header>
+
+          {/* Riepilogo del periodo */}
+          <section className="mov-summary" aria-label="Riepilogo del periodo">
+            <div className="mov-stat">
+              <div className="mov-stat-top">
+                <span>Entrate</span>
+                <span className="mov-chip pos">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                    <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+                  </svg>
+                </span>
+              </div>
+              <div className="mov-stat-value">€ 3.200,00</div>
+              <span className="mov-badge pos">+5,1% vs mese prec.</span>
+            </div>
+
+            <div className="mov-stat">
+              <div className="mov-stat-top">
+                <span>Uscite</span>
+                <span className="mov-chip warn">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                    <path d="M3 7l6 6 4-4 8 8M15 17h6v-6" />
+                  </svg>
+                </span>
+              </div>
+              <div className="mov-stat-value">€ 2.118,40</div>
+              <span className="mov-badge pos">−12,0% vs mese prec.</span>
+            </div>
+
+            <div className="mov-stat mov-stat-net">
+              <div className="mov-stat-top">
+                <span>Saldo netto</span>
+                <span className="mov-chip info">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                    <path d="M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                  </svg>
+                </span>
+              </div>
+              <div className="mov-stat-value">+ € 1.081,60</div>
+              <span className="mov-muted">Novembre 2026</span>
+            </div>
+          </section>
+
+          {/* Barra filtri (solo grafica) */}
+          <form className="mov-toolbar" role="search" aria-label="Filtra i movimenti">
+            <div className="mov-search">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                <path d="M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-4.3-4.3" />
+              </svg>
+              <label htmlFor="mov-cerca" className="mov-sr">Cerca un movimento</label>
+              <input id="mov-cerca" name="q" type="search" placeholder="Cerca per descrizione…" />
+            </div>
+
+            <div className="mov-select">
+              <label htmlFor="mov-f-conto" className="mov-sr">Conto</label>
+              <select id="mov-f-conto" name="conto" defaultValue="">
+                <option value="">Tutti i conti</option>
+                <option value="principale">Conto principale</option>
+                <option value="risparmio">Conto risparmio</option>
+                <option value="carta">Carta di credito</option>
+                <option value="contanti">Contanti</option>
+              </select>
+            </div>
+
+            <div className="mov-select">
+              <label htmlFor="mov-f-cat" className="mov-sr">Categoria</label>
+              <select id="mov-f-cat" name="categoria" defaultValue="">
+                <option value="">Tutte le categorie</option>
+                <option value="casa">Casa</option>
+                <option value="alimentari">Alimentari</option>
+                <option value="trasporti">Trasporti</option>
+                <option value="svago">Svago</option>
+                <option value="salute">Salute</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
+
+            <div className="mov-select">
+              <label htmlFor="mov-f-periodo" className="mov-sr">Periodo</label>
+              <select id="mov-f-periodo" name="periodo" defaultValue="mese">
+                <option value="settimana">Ultimi 7 giorni</option>
+                <option value="mese">Questo mese</option>
+                <option value="mese-prec">Mese scorso</option>
+                <option value="anno">Quest&apos;anno</option>
+              </select>
+            </div>
+          </form>
+
+          <nav className="mov-filters" aria-label="Filtra per tipo di movimento">
+            <a href="#" className="mov-pill on" aria-current="true">Tutti</a>
+            <a href="#" className="mov-pill">Entrate</a>
+            <a href="#" className="mov-pill">Uscite</a>
+            <a href="#" className="mov-pill">Trasferimenti</a>
+          </nav>
+
+          {/* Elenco movimenti */}
+          <section className="mov-list" aria-label="Elenco movimenti">
+            <div className="mov-head" aria-hidden="true">
+              <span />
+              <span>Descrizione</span>
+              <span>Categoria</span>
+              <span>Conto</span>
+              <span className="r">Importo</span>
+            </div>
+
+            {/* ---------- Oggi ---------- */}
+            <h2 className="mov-day">Oggi · 10 novembre</h2>
+
+            {/* ===== RIGA MOVIMENTO: copia questo blocco per ogni movimento ===== */}
+            <div className="mov-row">
+              <span className="mov-chip pos">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Stipendio</strong>
+                <span>Entrata · Conto principale</span>
+              </div>
+              <span className="mov-cat"><i className="c-verde" />Entrata</span>
+              <span className="mov-acc">Conto principale</span>
+              <span className="mov-amt pos">+ € 3.200,00</span>
+            </div>
+            {/* ===== FINE RIGA MOVIMENTO ===== */}
+
+            <div className="mov-row">
+              <span className="mov-chip warn">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M3 4h2l2.4 11h10.2l2-8H6.2M9 20a1 1 0 100-2 1 1 0 000 2M17 20a1 1 0 100-2 1 1 0 000 2" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Esselunga</strong>
+                <span>Alimentari · Carta di credito</span>
+              </div>
+              <span className="mov-cat"><i className="c-verde" />Alimentari</span>
+              <span className="mov-acc">Carta di credito</span>
+              <span className="mov-amt">− € 64,20</span>
+            </div>
+
+            <div className="mov-row">
+              <span className="mov-chip">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M4 7h16v12H4zM9 7V5a2 2 0 012-2h2a2 2 0 012 2v2M4 13h16" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Caffè e cornetto</strong>
+                <span>Altro · Contanti</span>
+              </div>
+              <span className="mov-cat"><i className="c-grigio" />Altro</span>
+              <span className="mov-acc">Contanti</span>
+              <span className="mov-amt">− € 2,40</span>
+            </div>
+
+            {/* ---------- Ieri ---------- */}
+            <h2 className="mov-day">Ieri · 9 novembre</h2>
+
+            <div className="mov-row">
+              <span className="mov-chip neutral">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Trasferimento al risparmio</strong>
+                <span>Trasferimento · Conto principale → Conto risparmio</span>
+              </div>
+              <span className="mov-cat"><i className="c-blu" />Trasferimento</span>
+              <span className="mov-acc">Principale → Risparmio</span>
+              <span className="mov-amt neutral">€ 300,00</span>
+            </div>
+
+            <div className="mov-row">
+              <span className="mov-chip vio">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Netflix</strong>
+                <span>Svago · Carta di credito</span>
+              </div>
+              <span className="mov-cat"><i className="c-viola" />Svago</span>
+              <span className="mov-acc">Carta di credito</span>
+              <span className="mov-amt">− € 12,99</span>
+            </div>
+
+            {/* ---------- Venerdì 7 novembre ---------- */}
+            <h2 className="mov-day">Venerdì · 7 novembre</h2>
+
+            <div className="mov-row">
+              <span className="mov-chip info">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Affitto novembre</strong>
+                <span>Casa · Conto principale</span>
+              </div>
+              <span className="mov-cat"><i className="c-blu" />Casa</span>
+              <span className="mov-acc">Conto principale</span>
+              <span className="mov-amt">− € 720,00</span>
+            </div>
+
+            <div className="mov-row">
+              <span className="mov-chip">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M7 3h10a2 2 0 012 2v10a3 3 0 01-3 3H8a3 3 0 01-3-3V5a2 2 0 012-2zM5 11h14M8 21l2-3M16 21l-2-3" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Trenitalia</strong>
+                <span>Trasporti · Conto principale</span>
+              </div>
+              <span className="mov-cat"><i className="c-arancio" />Trasporti</span>
+              <span className="mov-acc">Conto principale</span>
+              <span className="mov-amt">− € 38,50</span>
+            </div>
+
+            <div className="mov-row">
+              <span className="mov-chip pos">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M12 21s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.6-7 10-7 10z" />
+                </svg>
+              </span>
+              <div className="mov-desc">
+                <strong>Farmacia</strong>
+                <span>Salute · Carta di credito</span>
+              </div>
+              <span className="mov-cat"><i className="c-verde" />Salute</span>
+              <span className="mov-acc">Carta di credito</span>
+              <span className="mov-amt">− € 18,70</span>
+            </div>
+          </section>
+
+          {/* Paginazione (solo grafica) */}
+          <nav className="mov-pager" aria-label="Paginazione">
+            <span className="mov-muted">Mostro 1–8 di 48 movimenti</span>
+            <div className="mov-pager-links">
+              <a href="#" className="mov-page-btn disabled" aria-label="Pagina precedente" aria-disabled="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M15 6l-6 6 6 6" />
+                </svg>
+              </a>
+              <a href="#" className="mov-page-btn on" aria-current="page">1</a>
+              <a href="#" className="mov-page-btn">2</a>
+              <a href="#" className="mov-page-btn">3</a>
+              <span className="mov-muted">…</span>
+              <a href="#" className="mov-page-btn">6</a>
+              <a href="#" className="mov-page-btn" aria-label="Pagina successiva">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </a>
+            </div>
+          </nav>
         </div>
+      </div>
 
-        <div className="manut-illustration" aria-hidden="true">
-          <svg viewBox="0 0 80 64" width="88" height="70">
-            {/* ingranaggio grande */}
-            <g className="manut-gear manut-gear-big">
-              <circle cx="28" cy="32" r="8" />
-              <path d="M28 12v6M28 46v6M8 32h6M42 32h6M13.9 17.9l4.2 4.2M37.9 41.9l4.2 4.2M13.9 46.1l4.2-4.2M37.9 22.1l4.2-4.2" />
-              <circle cx="28" cy="32" r="16" />
-            </g>
-            {/* ingranaggio piccolo */}
-            <g className="manut-gear manut-gear-small">
-              <circle cx="56" cy="20" r="4.5" />
-              <path d="M56 8v3M56 29v3M44 20h3M65 20h3M47.5 11.5l2.1 2.1M62.4 26.4l2.1 2.1M47.5 28.5l2.1-2.1M62.4 13.6l2.1-2.1" />
-              <circle cx="56" cy="20" r="9" />
-            </g>
-          </svg>
-        </div>
+      {/* Finestra "Nuova transazione": si apre con :target, nessun JavaScript */}
+      <div id="nuova-transazione-modal" className="mov-modal" role="dialog" aria-modal="true" aria-labelledby="nuova-transazione-titolo">
+        <a href="#" className="mov-modal-backdrop" aria-label="Chiudi finestra" tabIndex={-1} />
 
-        <span className="manut-badge" role="status">
-          <span className="manut-dot" aria-hidden="true" />
-          Manutenzione in corso
-        </span>
-
-        <h1 className="manut-title">Torniamo presto</h1>
-        <p className="manut-text">
-          Stiamo aggiornando Finance per offrirti un&apos;esperienza migliore. I tuoi dati sono al sicuro e
-          tutto sarà di nuovo disponibile a breve.
-        </p>
-
-        <div className="manut-progress" role="progressbar" aria-label="Aggiornamento in corso" />
-        <p className="manut-note">Aggiornamento in corso…</p>
-
-        <div className="manut-actions">
-          {/* Link a se stessa: ricarica la pagina senza usare JavaScript */}
-          <a href="/" className="manut-btn primary">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" />
+        <div className="mov-modal-box">
+          <a href="#" className="mov-modal-close" aria-label="Chiudi">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
+              <path d="M6 6l12 12M18 6L6 18" />
             </svg>
-            Torna alla Home
           </a>
-        </div>
 
-        <p className="manut-footer">Grazie per la pazienza. Il team di Finance</p>
+          <h2 id="nuova-transazione-titolo" className="mov-modal-title">Nuova transazione</h2>
+          <p className="mov-modal-sub">Registra un&apos;entrata, un&apos;uscita o un trasferimento tra conti.</p>
+
+          {/* TODO: collegare il salvataggio (es. Supabase) */}
+          <form className="mov-form">
+            <fieldset className="mov-type">
+              <legend className="mov-sr">Tipo di movimento</legend>
+
+              <input type="radio" name="tipo" id="tipo-uscita" value="uscita" defaultChecked />
+              <label htmlFor="tipo-uscita">Uscita</label>
+
+              <input type="radio" name="tipo" id="tipo-entrata" value="entrata" />
+              <label htmlFor="tipo-entrata">Entrata</label>
+
+              <input type="radio" name="tipo" id="tipo-trasf" value="trasferimento" />
+              <label htmlFor="tipo-trasf">Trasferimento</label>
+            </fieldset>
+
+            <div className="mov-amount-field">
+              <label htmlFor="mov-importo">Importo</label>
+              <div className="mov-amount-input">
+                <span aria-hidden="true">€</span>
+                <input id="mov-importo" name="importo" type="number" step="0.01" min="0" placeholder="0,00" required />
+              </div>
+            </div>
+
+            <div className="mov-field">
+              <label htmlFor="mov-descrizione">Descrizione</label>
+              <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required />
+            </div>
+
+            <div className="mov-field-row">
+              <div className="mov-field">
+                <label htmlFor="mov-categoria">Categoria</label>
+                <select id="mov-categoria" name="categoria" defaultValue="alimentari">
+                  <option value="casa">Casa</option>
+                  <option value="alimentari">Alimentari</option>
+                  <option value="trasporti">Trasporti</option>
+                  <option value="svago">Svago</option>
+                  <option value="salute">Salute</option>
+                  <option value="altro">Altro</option>
+                </select>
+              </div>
+              <div className="mov-field">
+                <label htmlFor="mov-conto">Conto</label>
+                <select id="mov-conto" name="conto" defaultValue="principale">
+                  <option value="principale">Conto principale</option>
+                  <option value="risparmio">Conto risparmio</option>
+                  <option value="carta">Carta di credito</option>
+                  <option value="contanti">Contanti</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mov-field">
+              <label htmlFor="mov-data">Data</label>
+              <input id="mov-data" name="data" type="date" required />
+            </div>
+
+            <div className="mov-field">
+              <label htmlFor="mov-note">Note (facoltativo)</label>
+              <textarea id="mov-note" name="note" rows={2} placeholder="Aggiungi un dettaglio…" />
+            </div>
+
+            <div className="mov-modal-actions">
+              <a href="#" className="mov-btn-secondary">Annulla</a>
+              <button type="submit" className="mov-btn-primary">Salva movimento</button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   );
