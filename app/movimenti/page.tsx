@@ -23,6 +23,8 @@ export default function Movimenti() {
   const [importo, setImporto] = useState(0);
   const [data, setData] = useState(new Date());
   const [conti, setConti] = useState<Conto[]>([]);
+  const [modalMode, setModalMode] = useState<"creazione" | "modifica">("creazione");
+  const [modalAperto, setModalAperto] = useState(false);
 
   type Conto = {
     id: string;
@@ -67,48 +69,54 @@ export default function Movimenti() {
 
   // Recuperiamo i conti da Supabase
   useEffect(() => {
-  async function caricaConti() {
-    const { data, error } = await supabase
-      .from("conti")
-      .select("*");
+    async function caricaConti() {
+      const { data, error } = await supabase
+        .from("conti")
+        .select("*");
 
-    if (error) {
-      console.error(error);
-      return;
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setConti(data ?? []);
     }
-
-    setConti(data ?? []);
-  }
-  caricaConti();
-}, []);
+    caricaConti();
+  }, []);
 
   //funzione per salvare un nuovo movimento
   async function nuovoMovimento() {
 
-    console.log("FUNZIONE AVVIATA");
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    console.log("UTENTE:", user);
-    const { error } = await supabase.from("movimenti").insert([{
-      user_id: user.id,
-      nome: nome,
-      descrizione: descrizione,
-      conto_id: conto_id,
-      importo: importo,
-      categoria: categoria,
-      tipo: tipo,
-      data: data
-    }]);
+    if (modalMode === "creazione") {
+      const { error } = await supabase.from("movimenti").insert([{
+        user_id: user.id,
+        nome: nome,
+        descrizione: descrizione,
+        conto_id: conto_id,
+        importo: importo,
+        categoria: categoria,
+        tipo: tipo,
+        data: data
+      }]);
 
-    if (error) {
-      console.log("Errore:", error);
-      return;
+      if (error) {
+        console.log("Errore:", error);
+        return;
+      }
+    }else if (modalMode === "modifica") {
     }
 
     console.log("Movimento salvato!");
+    setModalAperto(false);
   }
+
+  function modificaMovimento() {
+    setModalAperto(true);
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Sidebar />
@@ -128,12 +136,15 @@ export default function Movimenti() {
                 </svg>
                 Esporta
               </a>
-              <a href="#nuova-transazione-modal" className="mov-btn-primary">
+              <button className="mov-btn-primary" onClick={() => {
+                setModalAperto(true);
+                setModalMode("creazione");
+              }}>
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic" style={{ strokeWidth: 2.4 }}>
                   <path d="M12 5v14M5 12h14" />
                 </svg>
                 Nuova transazione
-              </a>
+              </button>
             </div>
           </header>
 
@@ -258,6 +269,29 @@ export default function Movimenti() {
               <span className="mov-cat"><i className="c-verde" />Entrata</span>
               <span className="mov-acc">Conto principale</span>
               <span className="mov-amt pos">+ € 3.200,00</span>
+              <div className="mov-menu">
+                <details className="mov-details">
+                  <summary className="mov-more" aria-label="Opzioni movimento Stipendio">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
+                      <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
+                    </svg>
+                  </summary>
+                  <div className="mov-dropdown">
+                    <a href="#modifica-movimento">
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+                        <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16zM13.5 6.5l4 4" />
+                      </svg>
+                      Modifica
+                    </a>
+                    <a href="#elimina-movimento" className="danger">
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                      </svg>
+                      Elimina
+                    </a>
+                  </div>
+                </details>
+              </div>
             </div>
             {/* ===== FINE RIGA MOVIMENTO ===== */}
 
@@ -397,104 +431,105 @@ export default function Movimenti() {
         </div>
       </div>
 
-      {/* Finestra "Nuova transazione": si apre con :target, nessun JavaScript */}
-      <div id="nuova-transazione-modal" className="mov-modal" role="dialog" aria-modal="true" aria-labelledby="nuova-transazione-titolo">
-        <a href="#" className="mov-modal-backdrop" aria-label="Chiudi finestra" tabIndex={-1} />
+      {/* Finestra "Nuova transazione" */}
+      {modalAperto && (
+        <div id="nuova-transazione-modal" className="mov-modal" role="dialog" aria-modal="true" aria-labelledby="nuova-transazione-titolo">
+          <a href="#" className="mov-modal-backdrop" aria-label="Chiudi finestra" tabIndex={-1} />
 
-        <div className="mov-modal-box">
-          <a href="#" className="mov-modal-close" aria-label="Chiudi">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </a>
+          <div className="mov-modal-box">
+            <button className="mov-modal-close" aria-label="Chiudi" onClick={() => setModalAperto(false)}>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
 
-          <h2 id="nuova-transazione-titolo" className="mov-modal-title">Nuova transazione</h2>
-          <p className="mov-modal-sub">Registra un&apos;entrata, un&apos;uscita o un trasferimento tra conti.</p>
+            <h2 id="nuova-transazione-titolo" className="mov-modal-title">Nuova transazione</h2>
+            <p className="mov-modal-sub">Registra un&apos;entrata, un&apos;uscita o un trasferimento tra conti.</p>
 
-          {/* TODO: collegare il salvataggio (es. Supabase) */}
-          <form className="mov-form">
-            <fieldset className="mov-type">
-              <legend className="mov-sr">Tipo di movimento</legend>
+            <form className="mov-form">
+              <fieldset className="mov-type">
+                <legend className="mov-sr">Tipo di movimento</legend>
 
-              <input type="radio" name="tipo" id="tipo-uscita" value="uscita" defaultChecked onChange={(e) => setTipo(e.target.value)} />
-              <label htmlFor="tipo-uscita">Uscita</label>
+                <input type="radio" name="tipo" id="tipo-uscita" value="uscita" defaultChecked onChange={(e) => setTipo(e.target.value)} />
+                <label htmlFor="tipo-uscita">Uscita</label>
 
-              <input type="radio" name="tipo" id="tipo-entrata" value="entrata" onChange={(e) => setTipo(e.target.value)} />
-              <label htmlFor="tipo-entrata">Entrata</label>
+                <input type="radio" name="tipo" id="tipo-entrata" value="entrata" onChange={(e) => setTipo(e.target.value)} />
+                <label htmlFor="tipo-entrata">Entrata</label>
 
-              <input type="radio" name="tipo" id="tipo-trasf" value="trasferimento" onChange={(e) => setTipo(e.target.value)} />
-              <label htmlFor="tipo-trasf">Trasferimento</label>
-            </fieldset>
+                <input type="radio" name="tipo" id="tipo-trasf" value="trasferimento" onChange={(e) => setTipo(e.target.value)} />
+                <label htmlFor="tipo-trasf">Trasferimento</label>
+              </fieldset>
 
-            <div className="mov-amount-field">
-              <label htmlFor="mov-importo">Importo</label>
-              <div className="mov-amount-input">
-                <span aria-hidden="true">€</span>
-                <input id="mov-importo" name="importo" type="number" step="0.01" min="0" placeholder="0,00" required
-                  value={importo} onChange={(e) => setImporto(parseFloat(e.target.value) || 0)}
+              <div className="mov-amount-field">
+                <label htmlFor="mov-importo">Importo</label>
+                <div className="mov-amount-input">
+                  <span aria-hidden="true">€</span>
+                  <input id="mov-importo" name="importo" type="number" step="0.01" min="0" placeholder="0,00" required
+                    value={importo} onChange={(e) => setImporto(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+
+              <div className="mov-field">
+                <label htmlFor="mov-descrizione">Descrizione</label>
+                <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required
+                  value={nome} onChange={(e) => setNome(e.target.value)}
                 />
               </div>
-            </div>
 
-            <div className="mov-field">
-              <label htmlFor="mov-descrizione">Descrizione</label>
-              <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required
-                value={nome} onChange={(e) => setNome(e.target.value)}
-              />
-            </div>
-
-            <div className="mov-field-row">
-              <div className="mov-field">
-                <label htmlFor="mov-categoria">Categoria</label>
-                <select id="mov-categoria" name="categoria"
-                  value={categoria} onChange={(e) => setCategoria(e.target.value)}
-                >
-                  <option value="casa">Casa</option>
-                  <option value="alimentari">Alimentari</option>
-                  <option value="trasporti">Trasporti</option>
-                  <option value="svago">Svago</option>
-                  <option value="salute">Salute</option>
-                  <option value="altro">Altro</option>
-                </select>
+              <div className="mov-field-row">
+                <div className="mov-field">
+                  <label htmlFor="mov-categoria">Categoria</label>
+                  <select id="mov-categoria" name="categoria"
+                    value={categoria} onChange={(e) => setCategoria(e.target.value)}
+                  >
+                    <option value="casa">Casa</option>
+                    <option value="alimentari">Alimentari</option>
+                    <option value="trasporti">Trasporti</option>
+                    <option value="svago">Svago</option>
+                    <option value="salute">Salute</option>
+                    <option value="altro">Altro</option>
+                  </select>
+                </div>
+                <div className="mov-field">
+                  <label htmlFor="mov-conto">Conto</label>
+                  <select
+                    id="mov-conto"
+                    name="conto"
+                    value={conto_id}
+                    onChange={(e) => setContoId(e.target.value)}
+                  >
+                    {conti.map((conto) => (
+                      <option key={conto.id} value={conto.id}>
+                        {conto.Nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
               <div className="mov-field">
-                <label htmlFor="mov-conto">Conto</label>
-                <select
-                  id="mov-conto"
-                  name="conto"
-                  value={conto_id}
-                  onChange={(e) => setContoId(e.target.value)}
-                >
-                  {conti.map((conto) => (
-                    <option key={conto.id} value={conto.id}>
-                      {conto.Nome}
-                    </option>
-                  ))}
-                </select>
+                <label htmlFor="mov-data">Data</label>
+                <input id="mov-data" name="data" type="date" required
+                  value={data.toISOString().split('T')[0]} onChange={(e) => setData(new Date(e.target.value))}
+                />
               </div>
-            </div>
 
-            <div className="mov-field">
-              <label htmlFor="mov-data">Data</label>
-              <input id="mov-data" name="data" type="date" required
-                value={data.toISOString().split('T')[0]} onChange={(e) => setData(new Date(e.target.value))}
-              />
-            </div>
+              <div className="mov-field">
+                <label htmlFor="mov-note">Note (facoltativo)</label>
+                <textarea id="mov-note" name="note" rows={2} placeholder="Aggiungi un dettaglio…"
+                  value={descrizione} onChange={(e) => setDescrizione(e.target.value)}
+                />
+              </div>
 
-            <div className="mov-field">
-              <label htmlFor="mov-note">Note (facoltativo)</label>
-              <textarea id="mov-note" name="note" rows={2} placeholder="Aggiungi un dettaglio…"
-                value={descrizione} onChange={(e) => setDescrizione(e.target.value)}
-              />
-            </div>
-
-            <div className="mov-modal-actions">
-              <a href="#" className="mov-btn-secondary">Annulla</a>
-              <button type="button" className="mov-btn-primary" onClick={nuovoMovimento}>Salva movimento</button>
-            </div>
-          </form>
+              <div className="mov-modal-actions">
+                <a href="#" className="mov-btn-secondary" onClick={() => setModalAperto(false)}>Annulla</a>
+                <button type="button" className="mov-btn-primary" onClick={nuovoMovimento}>Salva movimento</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </main>
   );
 }

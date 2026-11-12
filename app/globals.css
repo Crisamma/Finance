@@ -2429,20 +2429,20 @@ main {
   border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--shadow);
-  overflow: hidden;
 }
  
 .mov-head,
 .mov-row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 150px 190px 130px;
+  grid-template-columns: 40px minmax(0, 1fr) 150px 190px 130px 44px;
   align-items: center;
   column-gap: 16px;
-  padding: 0 22px;
+  padding: 0 14px 0 22px;
 }
  
 .mov-head {
   height: 44px;
+  border-radius: 18px 18px 0 0;
   border-bottom: 1px solid var(--line);
   background: #fafbfd;
   font-size: 12px;
@@ -2594,8 +2594,9 @@ main {
   .mov-head { display: none; }
  
   .mov-row {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    padding: 0 16px;
+    grid-template-columns: 40px minmax(0, 1fr) auto 44px;
+    padding: 0 6px 0 16px;
+    column-gap: 12px;
   }
  
   .mov-cat,
@@ -2604,9 +2605,158 @@ main {
   .mov-day { padding: 14px 16px 8px; }
 }
  
+ 
+/* ------------------------------------------------------------------ */
+/*  Menu "…" di ogni riga (HTML nativo <details>, nessun JavaScript)   */
+/* ------------------------------------------------------------------ */
+ 
+.mov-list > .mov-row:last-of-type {
+  border-radius: 0 0 18px 18px;
+}
+ 
+.mov-menu {
+  position: relative;
+  justify-self: end;
+}
+ 
+.mov-details {
+  position: relative;
+}
+ 
+.mov-details[open] {
+  z-index: 30;
+}
+ 
+.mov-more {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+ 
+.mov-more::-webkit-details-marker {
+  display: none;
+}
+ 
+.mov-more:hover,
+.mov-details[open] > .mov-more {
+  background: var(--chip);
+  color: var(--text);
+}
+ 
+.mov-more:focus-visible {
+  outline: 2px solid #3b6fe0;
+  outline-offset: 2px;
+}
+ 
+.mov-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  min-width: 170px;
+  padding: 6px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 14px 32px rgba(15, 23, 42, 0.16);
+}
+ 
+.mov-dropdown a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+ 
+.mov-dropdown a:hover {
+  background: var(--chip);
+}
+ 
+.mov-dropdown a.danger {
+  color: var(--neg);
+}
+ 
+.mov-dropdown a.danger:hover {
+  background: var(--neg-bg);
+}
+ 
+.mov-dropdown a:focus-visible {
+  outline: 2px solid #3b6fe0;
+  outline-offset: -2px;
+}
+ 
+/* finestra di conferma eliminazione */
+.mov-modal-box.small {
+  max-width: 420px;
+  text-align: center;
+}
+ 
+.mov-confirm-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--neg-bg);
+  color: var(--neg);
+}
+ 
+.mov-modal-actions.center {
+  justify-content: center;
+  margin-top: 24px;
+  border-top: 0;
+  padding-top: 0;
+}
+ 
+.mov-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #c62f23;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+ 
+.mov-btn-danger:hover {
+  filter: brightness(1.1);
+}
+ 
+.mov-btn-danger:focus-visible {
+  outline: 2px solid #3b6fe0;
+  outline-offset: 2px;
+}
+ 
 /* finestra "nuova transazione" (solo CSS, via :target) */
 .mov-modal {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -2614,10 +2764,6 @@ main {
   justify-content: center;
   padding: 16px;
   box-sizing: border-box;
-}
- 
-.mov-modal:target {
-  display: flex;
 }
  
 .mov-modal-backdrop {
@@ -2659,6 +2805,7 @@ main {
   border-radius: 12px;
   color: var(--muted);
   text-decoration: none;
+  cursor: pointer;
 }
  
 .mov-modal-close:hover {
