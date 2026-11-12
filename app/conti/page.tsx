@@ -84,6 +84,7 @@ export default function Conti() {
         return;
       }
 
+      // Aggiorna lo stato dei conti con i nuovi valori
       setConti(conti.map((conto) => {
         if (conto.id === contoSelezionato) {
           return {

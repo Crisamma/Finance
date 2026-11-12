@@ -1,4 +1,7 @@
+"use client";
+import { useEffect, useState } from "react";
 import Sidebar from "../sidebar";
+import { supabase } from "@/lib/supabase/client";
 
 /*
   Pagina MOVIMENTI: solo grafica, nessun JavaScript.
@@ -10,6 +13,102 @@ import Sidebar from "../sidebar";
 */
 
 export default function Movimenti() {
+
+  const [movimenti, setMovimenti] = useState<Movimento[]>([]);
+  const [nome, setNome] = useState("");
+  const [descrizione, setDescrizione] = useState("");
+  const [conto_id, setContoId] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [tipo, setTipo] = useState("uscita");
+  const [importo, setImporto] = useState(0);
+  const [data, setData] = useState(new Date());
+  const [conti, setConti] = useState<Conto[]>([]);
+
+  type Conto = {
+    id: string;
+    Nome: string;
+    Tipo: string;
+    Valuta: string;
+    Saldo: number;
+    ultime_4_cifre: string | null;
+    colore: string;
+    includi_patrimonio: boolean;
+  };
+
+  type Movimento = {
+    id: string;
+    user_id: string;
+    nome: string;
+    descrizione: string;
+    conto_id: string;
+    categoria: string;
+    tipo: string;
+    importo: number;
+    data: Date;
+  };
+
+  useEffect(() => {
+    async function caricaMovimenti() {
+      // Recuperiamo i movimenti da Supabase
+      const { data, error } = await supabase
+        .from("movimenti")
+        .select("*");
+
+      if (error) {
+        console.error(error);
+        return;
+      } else {
+        setMovimenti(data ?? []);
+      }
+
+    }
+    caricaMovimenti();
+  }, []);
+
+  // Recuperiamo i conti da Supabase
+  useEffect(() => {
+  async function caricaConti() {
+    const { data, error } = await supabase
+      .from("conti")
+      .select("*");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setConti(data ?? []);
+  }
+  caricaConti();
+}, []);
+
+  //funzione per salvare un nuovo movimento
+  async function nuovoMovimento() {
+
+    console.log("FUNZIONE AVVIATA");
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    console.log("UTENTE:", user);
+    const { error } = await supabase.from("movimenti").insert([{
+      user_id: user.id,
+      nome: nome,
+      descrizione: descrizione,
+      conto_id: conto_id,
+      importo: importo,
+      categoria: categoria,
+      tipo: tipo,
+      data: data
+    }]);
+
+    if (error) {
+      console.log("Errore:", error);
+      return;
+    }
+
+    console.log("Movimento salvato!");
+  }
   return (
     <main className="min-h-screen bg-white">
       <Sidebar />
@@ -92,7 +191,7 @@ export default function Movimenti() {
 
             <div className="mov-select">
               <label htmlFor="mov-f-conto" className="mov-sr">Conto</label>
-              <select id="mov-f-conto" name="conto" defaultValue="">
+              <select id="mov-f-conto" name="conto">
                 <option value="">Tutti i conti</option>
                 <option value="principale">Conto principale</option>
                 <option value="risparmio">Conto risparmio</option>
@@ -103,7 +202,7 @@ export default function Movimenti() {
 
             <div className="mov-select">
               <label htmlFor="mov-f-cat" className="mov-sr">Categoria</label>
-              <select id="mov-f-cat" name="categoria" defaultValue="">
+              <select id="mov-f-cat" name="categoria">
                 <option value="">Tutte le categorie</option>
                 <option value="casa">Casa</option>
                 <option value="alimentari">Alimentari</option>
@@ -116,7 +215,7 @@ export default function Movimenti() {
 
             <div className="mov-select">
               <label htmlFor="mov-f-periodo" className="mov-sr">Periodo</label>
-              <select id="mov-f-periodo" name="periodo" defaultValue="mese">
+              <select id="mov-f-periodo" name="periodo">
                 <option value="settimana">Ultimi 7 giorni</option>
                 <option value="mese">Questo mese</option>
                 <option value="mese-prec">Mese scorso</option>
@@ -317,13 +416,13 @@ export default function Movimenti() {
             <fieldset className="mov-type">
               <legend className="mov-sr">Tipo di movimento</legend>
 
-              <input type="radio" name="tipo" id="tipo-uscita" value="uscita" defaultChecked />
+              <input type="radio" name="tipo" id="tipo-uscita" value="uscita" defaultChecked onChange={(e) => setTipo(e.target.value)} />
               <label htmlFor="tipo-uscita">Uscita</label>
 
-              <input type="radio" name="tipo" id="tipo-entrata" value="entrata" />
+              <input type="radio" name="tipo" id="tipo-entrata" value="entrata" onChange={(e) => setTipo(e.target.value)} />
               <label htmlFor="tipo-entrata">Entrata</label>
 
-              <input type="radio" name="tipo" id="tipo-trasf" value="trasferimento" />
+              <input type="radio" name="tipo" id="tipo-trasf" value="trasferimento" onChange={(e) => setTipo(e.target.value)} />
               <label htmlFor="tipo-trasf">Trasferimento</label>
             </fieldset>
 
@@ -331,19 +430,25 @@ export default function Movimenti() {
               <label htmlFor="mov-importo">Importo</label>
               <div className="mov-amount-input">
                 <span aria-hidden="true">€</span>
-                <input id="mov-importo" name="importo" type="number" step="0.01" min="0" placeholder="0,00" required />
+                <input id="mov-importo" name="importo" type="number" step="0.01" min="0" placeholder="0,00" required
+                  value={importo} onChange={(e) => setImporto(parseFloat(e.target.value) || 0)}
+                />
               </div>
             </div>
 
             <div className="mov-field">
               <label htmlFor="mov-descrizione">Descrizione</label>
-              <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required />
+              <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required
+                value={nome} onChange={(e) => setNome(e.target.value)}
+              />
             </div>
 
             <div className="mov-field-row">
               <div className="mov-field">
                 <label htmlFor="mov-categoria">Categoria</label>
-                <select id="mov-categoria" name="categoria" defaultValue="alimentari">
+                <select id="mov-categoria" name="categoria"
+                  value={categoria} onChange={(e) => setCategoria(e.target.value)}
+                >
                   <option value="casa">Casa</option>
                   <option value="alimentari">Alimentari</option>
                   <option value="trasporti">Trasporti</option>
@@ -354,28 +459,38 @@ export default function Movimenti() {
               </div>
               <div className="mov-field">
                 <label htmlFor="mov-conto">Conto</label>
-                <select id="mov-conto" name="conto" defaultValue="principale">
-                  <option value="principale">Conto principale</option>
-                  <option value="risparmio">Conto risparmio</option>
-                  <option value="carta">Carta di credito</option>
-                  <option value="contanti">Contanti</option>
+                <select
+                  id="mov-conto"
+                  name="conto"
+                  value={conto_id}
+                  onChange={(e) => setContoId(e.target.value)}
+                >
+                  {conti.map((conto) => (
+                    <option key={conto.id} value={conto.id}>
+                      {conto.Nome}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             <div className="mov-field">
               <label htmlFor="mov-data">Data</label>
-              <input id="mov-data" name="data" type="date" required />
+              <input id="mov-data" name="data" type="date" required
+                value={data.toISOString().split('T')[0]} onChange={(e) => setData(new Date(e.target.value))}
+              />
             </div>
 
             <div className="mov-field">
               <label htmlFor="mov-note">Note (facoltativo)</label>
-              <textarea id="mov-note" name="note" rows={2} placeholder="Aggiungi un dettaglio…" />
+              <textarea id="mov-note" name="note" rows={2} placeholder="Aggiungi un dettaglio…"
+                value={descrizione} onChange={(e) => setDescrizione(e.target.value)}
+              />
             </div>
 
             <div className="mov-modal-actions">
               <a href="#" className="mov-btn-secondary">Annulla</a>
-              <button type="submit" className="mov-btn-primary">Salva movimento</button>
+              <button type="button" className="mov-btn-primary" onClick={nuovoMovimento}>Salva movimento</button>
             </div>
           </form>
         </div>
