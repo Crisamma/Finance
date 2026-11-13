@@ -28,6 +28,13 @@ export default function Movimenti() {
   const [menuAperto, setMenuAperto] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [movimentoSelezionato, setMovimentoSelezionato] = useState<string | null>(null);
+  const [contoDestinazione, setContoDestinazione] = useState("");
+
+  const oggi = new Date();
+  const meseCorrente = oggi.getMonth();
+  const annoCorrente = oggi.getFullYear();
+  const nomeMese = oggi.toLocaleDateString("it-IT", { month: "long" });
+  const meseMaiuscolo = nomeMese.charAt(0).toUpperCase() + nomeMese.slice(1);
 
   type Conto = {
     id: string;
@@ -50,11 +57,11 @@ export default function Movimenti() {
     tipo: string;
     importo: number;
     data: Date;
+    conto_destinazione_id: string | null;
   };
 
   //funzione per salvare un nuovo movimento
   async function salvaMovimento() {
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -67,7 +74,8 @@ export default function Movimenti() {
         importo: importo,
         categoria: categoria,
         tipo: tipo,
-        data: data
+        data: data.toISOString().split("T")[0],
+        conto_destinazione_id: contoDestinazione
       }]);
 
 
@@ -86,10 +94,10 @@ export default function Movimenti() {
           importo: importo,
           categoria: categoria,
           tipo: tipo,
-          data: data
-          //created_at: created_at,
+          data: data.toISOString().split("T")[0],
+          conto_destinazione_id: contoDestinazione
         })
-        .eq("id", movimentoSelezionato);
+        .eq("id", movimentoSelezionato)
 
       if (error) {
         console.log("ID utente:", user?.id);
@@ -108,7 +116,8 @@ export default function Movimenti() {
             importo: importo,
             categoria: categoria,
             tipo: tipo,
-            data: data
+            data: new Date(data),
+            conto_destinazione_id: contoDestinazione
           };
         }
 
@@ -131,8 +140,8 @@ export default function Movimenti() {
     setData(new Date(movimento.data));
     setContoId(movimento.conto_id);
 
-    setModalMode("modifica")
-    setModalAperto(true)
+    setModalMode("modifica");
+    setModalAperto(true);
   }
 
   async function eliminaMovimento(id: string) {
@@ -158,8 +167,25 @@ export default function Movimenti() {
       return `− € ${movimento.importo.toFixed(2)}`;
     } else if (movimento.tipo === "entrata") {
       return `+ € ${movimento.importo.toFixed(2)}`;
+    } else if (movimento.tipo === "trasferimento") {
+      return `€ ${movimento.importo.toFixed(2)}`;
     }
   }
+
+  function calcoloEntrate() {
+    const totaleEntrate = movimenti.filter(movimento => movimento.tipo == "entrata").reduce((accumulatore, movimento) => {
+      return accumulatore + movimento.importo;
+    }, 0);
+    return totaleEntrate;
+  }
+
+  function calcoloUscite() {
+    const totaleUscite = movimenti.filter(movimento => movimento.tipo == "uscita").reduce((accumulatore, movimento) => {
+      return accumulatore + movimento.importo;
+    }, 0);
+    return totaleUscite;
+  }
+
 
   useEffect(() => {
     async function caricaMovimenti() {
@@ -230,12 +256,14 @@ export default function Movimenti() {
               <p className="mov-subtitle">Tutte le tue entrate e uscite, in ordine di data.</p>
             </div>
             <div className="mov-header-actions">
+              {/* Esporta Un movimento TODO
               <a href="#" className="mov-btn-secondary">
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
                   <path d="M12 3v12M7 10l5 5 5-5M4 20h16" />
                 </svg>
                 Esporta
               </a>
+              */}
               <button className="mov-btn-primary" onClick={() => {
                 setModalAperto(true);
                 setModalMode("creazione");
@@ -259,7 +287,7 @@ export default function Movimenti() {
                   </svg>
                 </span>
               </div>
-              <div className="mov-stat-value">€ 3.200,00</div>
+              <div className="mov-stat-value">€ {calcoloEntrate().toFixed(2)}</div>
               <span className="mov-badge pos">+5,1% vs mese prec.</span>
             </div>
 
@@ -272,7 +300,7 @@ export default function Movimenti() {
                   </svg>
                 </span>
               </div>
-              <div className="mov-stat-value">€ 2.118,40</div>
+              <div className="mov-stat-value">€ {calcoloUscite().toFixed(2)}</div>
               <span className="mov-badge pos">−12,0% vs mese prec.</span>
             </div>
 
@@ -285,8 +313,10 @@ export default function Movimenti() {
                   </svg>
                 </span>
               </div>
-              <div className="mov-stat-value">+ € 1.081,60</div>
-              <span className="mov-muted">Novembre 2026</span>
+              <div className={`mov-stat-value 
+                ${(calcoloEntrate() - calcoloUscite()) < 0 ? "neg" : "pos"}`}>
+                € {(calcoloEntrate() - calcoloUscite()).toFixed(2)}</div>
+              <span className="mov-muted">{meseMaiuscolo} {annoCorrente}</span>
             </div>
           </section>
 
@@ -363,52 +393,65 @@ export default function Movimenti() {
                     <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
                   </svg>
                 </span>
+
                 <div className="mov-desc">
-                  <strong>{movimento.nome}</strong>
-                  <span>{movimento.descrizione} · </span> {/* inserire movimento.conto */}
+                  {movimento.tipo === "trasferimento" ? (
+                    <strong>Trasferimento a {conti.find((conto) => conto.id === movimento.conto_destinazione_id)?.Nome}</strong>
+                  ) : (
+                    <strong>{movimento.nome}</strong>
+                  )}
+                  <span>{movimento.descrizione}</span> {/* inserire movimento.conto */}
                 </div>
-                <span className="mov-cat"><i className="c-verde" />{movimento.categoria}</span>
-                <span className="mov-acc">{conti.find((conto) => conto.id === movimento.conto_id)?.Nome}</span>
+                {movimento.tipo === "trasferimento" ? (
+                  <span className="mov-cat"><i className="c-verde" />Trasferimento</span>
+                ) : (
+                  <span className="mov-cat"><i className="c-verde" />{movimento.categoria}</span>
+                )}
+                {movimento.tipo === "trasferimento" ? (
+                  <span className="mov-acc">{conti.find((conto) => conto.id === movimento.conto_id)?.Nome} → {conti.find((conto) => conto.id === movimento.conto_destinazione_id)?.Nome}</span>
+                ) : (
+                  <span className="mov-acc">{conti.find((conto) => conto.id === movimento.conto_id)?.Nome}</span>
+                )}
                 <span className={`mov-amt ${movimento.tipo === "entrata" ? "pos" : movimento.tipo === "uscita" ? "neg" : "transfer"}`}>{inserimentoImporto(movimento)}</span>
                 <div className="mov-menu">
-  <div className="mov-details">
-    <button
-      type="button"
-      className="mov-more"
-      aria-label="Opzioni movimento"
-      onClick={() => setMenuAperto(menuAperto === movimento.id ? null : movimento.id)}
-    >
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
-        <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
-      </svg>
-    </button>
+                  <div className="mov-details">
+                    <button
+                      type="button"
+                      className="mov-more"
+                      aria-label="Opzioni movimento"
+                      onClick={() => setMenuAperto(menuAperto === movimento.id ? null : movimento.id)}
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
+                        <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
+                      </svg>
+                    </button>
 
-    {menuAperto === movimento.id && (
-      <div className="mov-dropdown">
-        <a href="#modifica-movimento" onClick={(e) => {
-          e.preventDefault();
-          modificaMovimento(movimento);
-          setMenuAperto(null);
-        }}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
-            <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16zM13.5 6.5l4 4" />
-          </svg>
-          Modifica
-        </a>
+                    {menuAperto === movimento.id && (
+                      <div className="mov-dropdown">
+                        <a href="#modifica-movimento" onClick={(e) => {
+                          e.preventDefault();
+                          modificaMovimento(movimento);
+                          setMenuAperto(null);
+                        }}>
+                          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+                            <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16zM13.5 6.5l4 4" />
+                          </svg>
+                          Modifica
+                        </a>
 
-        <a href="#elimina-movimento" className="danger" onClick={(e) => {
-          e.preventDefault();
-          eliminaMovimento(movimento.id);
-        }}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
-            <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-          </svg>
-          Elimina
-        </a>
-      </div>
-    )}
-  </div>
-</div>
+                        <a href="#elimina-movimento" className="danger" onClick={(e) => {
+                          e.preventDefault();
+                          eliminaMovimento(movimento.id);
+                        }}>
+                          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+                            <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                          </svg>
+                          Elimina
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
             {/* ===== FINE RIGA MOVIMENTO ===== */}
@@ -587,43 +630,82 @@ export default function Movimenti() {
                   />
                 </div>
               </div>
-
-              <div className="mov-field">
-                <label htmlFor="mov-descrizione">Descrizione</label>
-                <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required
-                  value={nome} onChange={(e) => setNome(e.target.value)}
-                />
-              </div>
+              {tipo === "trasferimento" ? (
+                <></>
+              ) : (
+                <div className="mov-field">
+                  <label htmlFor="mov-descrizione">Descrizione</label>
+                  <input id="mov-descrizione" name="descrizione" type="text" placeholder="Es. Spesa settimanale" required
+                    value={nome} onChange={(e) => setNome(e.target.value)}
+                  />
+                </div>
+              )}
 
               <div className="mov-field-row">
-                <div className="mov-field">
-                  <label htmlFor="mov-categoria">Categoria</label>
-                  <select id="mov-categoria" name="categoria"
-                    value={categoria} onChange={(e) => setCategoria(e.target.value)}
-                  >
-                    <option value="casa">Casa</option>
-                    <option value="alimentari">Alimentari</option>
-                    <option value="trasporti">Trasporti</option>
-                    <option value="svago">Svago</option>
-                    <option value="salute">Salute</option>
-                    <option value="altro">Altro</option>
-                  </select>
-                </div>
-                <div className="mov-field">
-                  <label htmlFor="mov-conto">Conto</label>
-                  <select
-                    id="mov-conto"
-                    name="conto"
-                    value={conto_id}
-                    onChange={(e) => setContoId(e.target.value)}
-                  >
-                    {conti.map((conto) => (
-                      <option key={conto.id} value={conto.id}>
-                        {conto.Nome}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {tipo === "trasferimento" ? (
+                  <div className="mov-field">
+                    <label htmlFor="mov-conto">Dal Conto</label>
+                    <select
+                      id="mov-conto"
+                      name="conto"
+                      value={conto_id}
+                      onChange={(e) => setContoId(e.target.value)}
+                    >
+                      {conti.map((conto) => (
+                        <option key={conto.id} value={conto.id}>
+                          {conto.Nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mov-field">
+                    <label htmlFor="mov-categoria">Categoria</label>
+                    <select id="mov-categoria" name="categoria"
+                      value={categoria} onChange={(e) => setCategoria(e.target.value)}
+                    >
+                      <option value="casa">Casa</option>
+                      <option value="alimentari">Alimentari</option>
+                      <option value="trasporti">Trasporti</option>
+                      <option value="svago">Svago</option>
+                      <option value="salute">Salute</option>
+                      <option value="altro">Altro</option>
+                    </select>
+                  </div>
+                )}
+                {tipo === "trasferimento" ? (
+                  <div className="mov-field">
+                    <label htmlFor="mov-conto">Al Conto</label>
+                    <select
+                      id="mov-conto"
+                      name="conto"
+                      value={conto_id}
+                      onChange={(e) => setContoDestinazione(e.target.value)}
+                    >
+                      {conti.map((conto) => (
+                        <option key={conto.id} value={conto.id}>
+                          {conto.Nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mov-field">
+                    <label htmlFor="mov-conto">Conto</label>
+                    <select
+                      id="mov-conto"
+                      name="conto"
+                      value={conto_id}
+                      onChange={(e) => setContoId(e.target.value)}
+                    >
+                      {conti.map((conto) => (
+                        <option key={conto.id} value={conto.id}>
+                          {conto.Nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="mov-field">

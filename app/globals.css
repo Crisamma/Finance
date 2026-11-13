@@ -2301,6 +2301,14 @@ main {
 .mov-stat-net .mov-stat-value {
   color: var(--pos);
 }
+
+.mov-stat-value.neg {
+  color: var(--neg);
+}
+
+.mov-stat-value.pos {
+  color: var(--pos);
+}
  
 .mov-badge {
   display: inline-flex;
@@ -3010,5 +3018,5 @@ main {
 }
 
 .mov-amt.transfer {
-  color: gray;
+  color: rgb(100, 100, 100);
 }
