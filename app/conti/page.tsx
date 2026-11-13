@@ -193,6 +193,7 @@ export default function Conti() {
     return conti.filter(conto => conto.Tipo === tipo);
   }
 
+  // Funzione per eliminare un conto
   async function eliminaConto(id: string) {
     const { error } = await supabase
       .from("conti")

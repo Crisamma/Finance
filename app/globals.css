@@ -3001,3 +3001,14 @@ main {
   }
 }
  
+.mov-amt.pos {
+  color: #16a34a;
+}
+
+.mov-amt.neg {
+  color: black;
+}
+
+.mov-amt.transfer {
+  color: gray;
+}

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sidebar from "../sidebar";
 import { supabase } from "@/lib/supabase/client";
 
@@ -18,13 +18,16 @@ export default function Movimenti() {
   const [nome, setNome] = useState("");
   const [descrizione, setDescrizione] = useState("");
   const [conto_id, setContoId] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [categoria, setCategoria] = useState("Casa");
   const [tipo, setTipo] = useState("uscita");
   const [importo, setImporto] = useState(0);
   const [data, setData] = useState(new Date());
   const [conti, setConti] = useState<Conto[]>([]);
   const [modalMode, setModalMode] = useState<"creazione" | "modifica">("creazione");
   const [modalAperto, setModalAperto] = useState(false);
+  const [menuAperto, setMenuAperto] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [movimentoSelezionato, setMovimentoSelezionato] = useState<string | null>(null);
 
   type Conto = {
     id: string;
@@ -49,43 +52,8 @@ export default function Movimenti() {
     data: Date;
   };
 
-  useEffect(() => {
-    async function caricaMovimenti() {
-      // Recuperiamo i movimenti da Supabase
-      const { data, error } = await supabase
-        .from("movimenti")
-        .select("*");
-
-      if (error) {
-        console.error(error);
-        return;
-      } else {
-        setMovimenti(data ?? []);
-      }
-
-    }
-    caricaMovimenti();
-  }, []);
-
-  // Recuperiamo i conti da Supabase
-  useEffect(() => {
-    async function caricaConti() {
-      const { data, error } = await supabase
-        .from("conti")
-        .select("*");
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      setConti(data ?? []);
-    }
-    caricaConti();
-  }, []);
-
   //funzione per salvare un nuovo movimento
-  async function nuovoMovimento() {
+  async function salvaMovimento() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -102,20 +70,152 @@ export default function Movimenti() {
         data: data
       }]);
 
+
       if (error) {
         console.log("Errore:", error);
         return;
       }
-    }else if (modalMode === "modifica") {
+    } else if (modalMode === "modifica") {
+      const { error } = await supabase
+        .from("movimenti")
+        .update({
+          user_id: user.id,
+          nome: nome,
+          descrizione: descrizione,
+          conto_id: conto_id,
+          importo: importo,
+          categoria: categoria,
+          tipo: tipo,
+          data: data
+          //created_at: created_at,
+        })
+        .eq("id", movimentoSelezionato);
+
+      if (error) {
+        console.log("ID utente:", user?.id);
+        console.error("Errore salvataggio movimento:", error);
+        return;
+      }
+
+      // Aggiorna lo stato dei movimenti con i nuovi valori
+      setMovimenti(movimenti.map((movimento) => {
+        if (movimento.id === movimentoSelezionato) {
+          return {
+            ...movimento,
+            nome: nome,
+            descrizione: descrizione,
+            conto_id: conto_id,
+            importo: importo,
+            categoria: categoria,
+            tipo: tipo,
+            data: data
+          };
+        }
+
+        return movimento;
+      }));
     }
 
     console.log("Movimento salvato!");
     setModalAperto(false);
   }
 
-  function modificaMovimento() {
-    setModalAperto(true);
+  function modificaMovimento(movimento: Movimento) {
+    setMovimentoSelezionato(movimento.id);
+
+    setNome(movimento.nome);
+    setDescrizione(movimento.descrizione);
+    setCategoria(movimento.categoria);
+    setTipo(movimento.tipo);
+    setImporto(movimento.importo);
+    setData(new Date(movimento.data));
+    setContoId(movimento.conto_id);
+
+    setModalMode("modifica")
+    setModalAperto(true)
   }
+
+  async function eliminaMovimento(id: string) {
+    const { error } = await supabase
+      .from("movimenti")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setMovimenti(movimenti.filter((movimento) =>
+      movimento.id !== id
+    ));
+
+    setMenuAperto(null);
+  }
+
+  function inserimentoImporto(movimento: Movimento) {
+    if (movimento.tipo === "uscita") {
+      return `− € ${movimento.importo.toFixed(2)}`;
+    } else if (movimento.tipo === "entrata") {
+      return `+ € ${movimento.importo.toFixed(2)}`;
+    }
+  }
+
+  useEffect(() => {
+    async function caricaMovimenti() {
+      // Recuperiamo i movimenti da Supabase
+      const { data, error } = await supabase
+        .from("movimenti")
+        .select("*");
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setMovimenti(data ?? []);
+
+    }
+    caricaMovimenti();
+  }, []);
+
+  // Funzione per chiudere il menu a tendina quando si clicca fuori
+  useEffect(() => {
+    function chiudiMenu(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuAperto(null);
+      }
+    }
+
+    document.addEventListener("mousedown", chiudiMenu);
+
+    return () => {
+      document.removeEventListener("mousedown", chiudiMenu);
+    };
+  }, []);
+
+  // Recuperiamo i conti da Supabase
+  useEffect(() => {
+    async function caricaConti() {
+      const { data, error } = await supabase
+        .from("conti")
+        .select("*");
+      if (data && data.length > 0) {
+        setConti(data);
+        setContoId(data[0].id);
+      }
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setConti(data ?? []);
+    }
+
+    caricaConti();
+  }, []);
+
 
   return (
     <main className="min-h-screen bg-white">
@@ -243,7 +343,7 @@ export default function Movimenti() {
           </nav>
 
           {/* Elenco movimenti */}
-          <section className="mov-list" aria-label="Elenco movimenti">
+          <section className="mov-list" aria-label="Elenco movimenti" ref={menuRef}>
             <div className="mov-head" aria-hidden="true">
               <span />
               <span>Descrizione</span>
@@ -256,43 +356,61 @@ export default function Movimenti() {
             <h2 className="mov-day">Oggi · 10 novembre</h2>
 
             {/* ===== RIGA MOVIMENTO: copia questo blocco per ogni movimento ===== */}
-            <div className="mov-row">
-              <span className="mov-chip pos">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
-                  <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
-                </svg>
-              </span>
-              <div className="mov-desc">
-                <strong>Stipendio</strong>
-                <span>Entrata · Conto principale</span>
+            {movimenti.map((movimento) => (
+              <div className="mov-row" key={movimento.id}>
+                <span className="mov-chip pos">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="mov-ic">
+                    <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+                  </svg>
+                </span>
+                <div className="mov-desc">
+                  <strong>{movimento.nome}</strong>
+                  <span>{movimento.descrizione} · </span> {/* inserire movimento.conto */}
+                </div>
+                <span className="mov-cat"><i className="c-verde" />{movimento.categoria}</span>
+                <span className="mov-acc">{conti.find((conto) => conto.id === movimento.conto_id)?.Nome}</span>
+                <span className={`mov-amt ${movimento.tipo === "entrata" ? "pos" : movimento.tipo === "uscita" ? "neg" : "transfer"}`}>{inserimentoImporto(movimento)}</span>
+                <div className="mov-menu">
+  <div className="mov-details">
+    <button
+      type="button"
+      className="mov-more"
+      aria-label="Opzioni movimento"
+      onClick={() => setMenuAperto(menuAperto === movimento.id ? null : movimento.id)}
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
+        <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
+      </svg>
+    </button>
+
+    {menuAperto === movimento.id && (
+      <div className="mov-dropdown">
+        <a href="#modifica-movimento" onClick={(e) => {
+          e.preventDefault();
+          modificaMovimento(movimento);
+          setMenuAperto(null);
+        }}>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+            <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16zM13.5 6.5l4 4" />
+          </svg>
+          Modifica
+        </a>
+
+        <a href="#elimina-movimento" className="danger" onClick={(e) => {
+          e.preventDefault();
+          eliminaMovimento(movimento.id);
+        }}>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
+            <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+          </svg>
+          Elimina
+        </a>
+      </div>
+    )}
+  </div>
+</div>
               </div>
-              <span className="mov-cat"><i className="c-verde" />Entrata</span>
-              <span className="mov-acc">Conto principale</span>
-              <span className="mov-amt pos">+ € 3.200,00</span>
-              <div className="mov-menu">
-                <details className="mov-details">
-                  <summary className="mov-more" aria-label="Opzioni movimento Stipendio">
-                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="mov-ic">
-                      <path d="M12 6h.01M12 12h.01M12 18h.01" style={{ strokeWidth: 3 }} />
-                    </svg>
-                  </summary>
-                  <div className="mov-dropdown">
-                    <a href="#modifica-movimento">
-                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
-                        <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16zM13.5 6.5l4 4" />
-                      </svg>
-                      Modifica
-                    </a>
-                    <a href="#elimina-movimento" className="danger">
-                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="mov-ic">
-                        <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                      </svg>
-                      Elimina
-                    </a>
-                  </div>
-                </details>
-              </div>
-            </div>
+            ))}
             {/* ===== FINE RIGA MOVIMENTO ===== */}
 
             <div className="mov-row">
@@ -524,7 +642,7 @@ export default function Movimenti() {
 
               <div className="mov-modal-actions">
                 <a href="#" className="mov-btn-secondary" onClick={() => setModalAperto(false)}>Annulla</a>
-                <button type="button" className="mov-btn-primary" onClick={nuovoMovimento}>Salva movimento</button>
+                <button type="submit" className="mov-btn-primary" onClick={salvaMovimento}>Salva movimento</button>
               </div>
             </form>
           </div>
