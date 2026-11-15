@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Sidebar from "../sidebar";
-import { createClient } from "@/lib/supabase/server";
 import { supabase } from "@/lib/supabase/client";
 import GraficoVariazione from "@/components/GraficoVariazione";
 
