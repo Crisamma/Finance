@@ -138,10 +138,9 @@ export default function DashboardCard({ username }: { username: string }) {
   }
 
   function calcoloUscite() {
-    const totaleUsciteMensili = movimenti.filter(movimento => movimento.tipo === "uscita" && new Date(movimento.data) >= inizioMese).reduce((accumulatore, movimento) => {
-      return accumulatore + movimento.importo;
-    }, 0);
-    return totaleUsciteMensili;
+    return movimentiDelPeriodo()
+      .filter(movimento => movimento.tipo === "uscita")
+      .reduce((accumulatore, movimento) => accumulatore + movimento.importo, 0);
   }
 
   //Inserimento importo Entrate - Uscite
@@ -575,7 +574,13 @@ export default function DashboardCard({ username }: { username: string }) {
             <span className="dash-muted">vs periodo prec.</span>
           </div>
           <GraficoVariazione
-            andamento={calcolaVariazione("uscita").andamento}
+            andamento={
+              calcolaVariazione("uscita").andamento === "su"
+                ? "giu"
+                : calcolaVariazione("uscita").andamento === "giu"
+                  ? "su"
+                  : "nessuna"
+            }
             width="100%"
             height={40}
           />

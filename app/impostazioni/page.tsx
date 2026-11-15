@@ -1,297 +1,320 @@
-import Image from "next/image";
+"use client";
+import Sidebar from "../sidebar";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
-/*
-  Pagina MANUTENZIONE: un solo file, CSS incluso (nessuna modifica a globals.css).
-  Nessun JavaScript: le animazioni sono solo CSS.
-  Percorso consigliato: app/manutenzione/page.tsx
-*/
 
-const css = `
-.manut-page {
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  box-sizing: border-box;
-  background:
-    radial-gradient(900px 500px at 12% 8%, rgba(11, 122, 107, 0.14), transparent 60%),
-    radial-gradient(700px 480px at 92% 92%, rgba(59, 111, 224, 0.12), transparent 60%),
-    #f4f6fa;
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
-}
+export default function Impostazioni() {
 
-.manut-card {
-  width: 100%;
-  max-width: 520px;
-  box-sizing: border-box;
-  padding: 44px 36px 36px;
-  text-align: center;
-  background: #ffffff;
-  border: 1px solid #e4e9f1;
-  border-radius: 24px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 20px 50px rgba(15, 23, 42, 0.1);
-}
+  const router = useRouter();
+  
+  async function logout() {
+    const { error } = await supabase.auth.signOut();
 
-.manut-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 32px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
+    if (error) {
+      console.error("Errore logout:", error);
+      return;
+    }
 
-.manut-illustration {
-  position: relative;
-  width: 112px;
-  height: 112px;
-  margin: 0 auto 28px;
-  border-radius: 50%;
-  background: #ddf3ee;
-  color: #0b7a6b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.manut-illustration::before {
-  content: "";
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-  border: 2px solid rgba(11, 122, 107, 0.2);
-  animation: manut-pulse 2.4s ease-out infinite;
-}
-
-.manut-gear {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.manut-gear-big {
-  transform-origin: 28px 32px;
-  animation: manut-spin 9s linear infinite;
-}
-
-.manut-gear-small {
-  transform-origin: 56px 20px;
-  animation: manut-spin 6s linear infinite reverse;
-}
-
-.manut-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #fef0d6;
-  color: #9a4a06;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.manut-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #d97706;
-  animation: manut-blink 1.4s ease-in-out infinite;
-}
-
-.manut-title {
-  margin: 18px 0 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.manut-text {
-  margin: 12px auto 0;
-  max-width: 400px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #566176;
-}
-
-.manut-progress {
-  position: relative;
-  height: 8px;
-  margin: 30px auto 0;
-  max-width: 360px;
-  border-radius: 999px;
-  background: #eef2f7;
-  overflow: hidden;
-}
-
-.manut-progress::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 38%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0b7a6b, #0e9f6e);
-  animation: manut-slide 1.8s ease-in-out infinite;
-}
-
-.manut-note {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: #566176;
-}
-
-.manut-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.manut-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 46px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: filter 0.15s, background-color 0.15s;
-}
-
-.manut-btn.primary {
-  background: #0b7a6b;
-  color: #ffffff;
-}
-
-.manut-btn.primary:hover {
-  filter: brightness(1.1);
-}
-
-.manut-btn svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.manut-btn:focus-visible {
-  outline: 2px solid #3b6fe0;
-  outline-offset: 2px;
-}
-
-.manut-footer {
-  margin: 26px 0 0;
-  padding-top: 20px;
-  border-top: 1px solid #eef0f3;
-  font-size: 13px;
-  color: #566176;
-}
-
-@keyframes manut-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes manut-pulse {
-  0% { transform: scale(0.92); opacity: 0.9; }
-  100% { transform: scale(1.22); opacity: 0; }
-}
-
-@keyframes manut-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
-
-@keyframes manut-slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(263%); }
-}
-
-@media (max-width: 480px) {
-  .manut-card { padding: 36px 22px 28px; }
-  .manut-title { font-size: 25px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .manut-illustration::before,
-  .manut-gear-big,
-  .manut-gear-small,
-  .manut-dot,
-  .manut-progress::after {
-    animation: none;
+    router.push("/login");
+    router.refresh();
   }
-  .manut-progress::after { width: 38%; transform: translateX(80%); }
-}
-`;
 
-export default function Manutenzione() {
   return (
-    <main className="manut-page">
-      <style>{css}</style>
+    <main className="min-h-screen bg-white">
+      <Sidebar />
 
-      <div className="manut-card">
-        <div className="manut-brand">
-          <Image src="/images/logo3.png" alt="Logo Finance" width={30} height={30} style={{ width: "34px", height: "auto" }} priority />
-          <span>Finance</span>
+      <div className="main-content">
+        <div className="imp-page">
+          {/* Intestazione */}
+          <header className="imp-header">
+            <div>
+              <h1 className="imp-title">Impostazioni</h1>
+              <p className="imp-subtitle">Gestisci il tuo profilo, le preferenze e la sicurezza dell&apos;account.</p>
+            </div>
+            {/* TODO: collegare al logout */}
+            <button onClick={logout} className="imp-btn-secondary">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="imp-ic">
+                <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 8l-4 4 4 4M6 12h11" />
+              </svg>
+              Esci
+            </button>
+          </header>
+
+
+          <div className="imp-content">
+            {/* ============================ Profilo ============================ */}
+            <section id="profilo" className="imp-card" aria-labelledby="imp-t-profilo">
+              <div className="imp-card-head">
+                <h2 id="imp-t-profilo">Profilo</h2>
+                <p>Queste informazioni sono visibili solo a te.</p>
+              </div>
+
+              {/* TODO: collegare il salvataggio (es. Supabase) */}
+              <form className="imp-form">
+                <div className="imp-avatar-row">
+                  <div className="imp-avatar" aria-hidden="true">M</div>
+                  <div className="imp-avatar-actions">
+                    <div className="imp-file">
+                      <input id="imp-foto" name="foto" type="file" accept="image/*" />
+                      <label htmlFor="imp-foto" className="imp-btn-secondary small">Cambia foto</label>
+                    </div>
+                    <span className="imp-hint">JPG o PNG, massimo 2 MB.</span>
+                  </div>
+                </div>
+
+                <div className="imp-field-row">
+                  <div className="imp-field">
+                    <label htmlFor="imp-nome">Username</label>
+                    <input id="imp-nome" name="nome" type="text" autoComplete="given-name" defaultValue="Mario" />
+                  </div>
+                </div>
+
+                <div className="imp-field">
+                  <label htmlFor="imp-email">Email</label>
+                  <input id="imp-email" name="email" type="email" autoComplete="email" defaultValue="nome@esempio.it" />
+                  <span className="imp-hint">Se la cambi, riceverai un&apos;email di conferma al nuovo indirizzo.</span>
+                </div>
+
+                <div className="imp-actions">
+                  <button type="submit" className="imp-btn-primary">Salva profilo</button>
+                </div>
+              </form>
+            </section>
+
+            {/* ========================== Preferenze ===========================  TODO
+              <section id="preferenze" className="imp-card" aria-labelledby="imp-t-preferenze">
+                <div className="imp-card-head">
+                  <h2 id="imp-t-preferenze">Preferenze</h2>
+                  <p>Scegli come vuoi vedere importi e date.</p>
+                </div>
+
+                <form className="imp-form">
+                  <div className="imp-field-row">
+                    <div className="imp-field">
+                      <label htmlFor="imp-valuta">Valuta principale</label>
+                      <select id="imp-valuta" name="valuta" defaultValue="EUR">
+                        <option value="EUR">Euro (€)</option>
+                        <option value="USD">Dollaro ($)</option>
+                        <option value="GBP">Sterlina (£)</option>
+                        <option value="CHF">Franco (CHF)</option>
+                      </select>
+                    </div>
+                    <div className="imp-field">
+                      <label htmlFor="imp-lingua">Lingua</label>
+                      <select id="imp-lingua" name="lingua" defaultValue="it">
+                        <option value="it">Italiano</option>
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="imp-field">
+                    <label htmlFor="imp-data">Formato data</label>
+                    <select id="imp-data" name="formato_data" defaultValue="gg-mm-aaaa">
+                      <option value="gg-mm-aaaa">GG/MM/AAAA (es. 15/11/2026)</option>
+                      <option value="mm-gg-aaaa">MM/GG/AAAA (es. 11/15/2026)</option>
+                      <option value="aaaa-mm-gg">AAAA-MM-GG (es. 2026-11-15)</option>
+                    </select>
+                  </div>
+
+                  <fieldset className="imp-seg-field">
+                    <legend>Primo giorno della settimana</legend>
+                    <div className="imp-seg">
+                      <input type="radio" name="primo_giorno" id="imp-lun" value="lunedi" defaultChecked />
+                      <label htmlFor="imp-lun">Lunedì</label>
+                      <input type="radio" name="primo_giorno" id="imp-dom" value="domenica" />
+                      <label htmlFor="imp-dom">Domenica</label>
+                    </div>
+                  </fieldset>
+
+                  <div className="imp-actions">
+                    <button type="submit" className="imp-btn-primary">Salva preferenze</button>
+                  </div>
+                </form>
+              </section>*/}
+
+            {/* =========================== Notifiche =========================== TODO *
+              <section id="notifiche" className="imp-card" aria-labelledby="imp-t-notifiche">
+                <div className="imp-card-head">
+                  <h2 id="imp-t-notifiche">Notifiche</h2>
+                  <p>Decidi quando vuoi essere avvisato.</p>
+                </div>
+
+                <form className="imp-form">
+                  <div className="imp-switch-list">
+                    /* ===== RIGA INTERRUTTORE: copia questo blocco per ogni notifica ===== *
+                    <label className="imp-switch" htmlFor="imp-n-budget">
+                      <span className="imp-switch-text">
+                        <strong>Avvisi sul budget</strong>
+                        <span>Ti avvisiamo quando raggiungi l&apos;85% di un budget o lo superi.</span>
+                      </span>
+                      <input id="imp-n-budget" name="n_budget" type="checkbox" defaultChecked />
+                      <span className="imp-switch-track" aria-hidden="true" />
+                    </label>
+                    /* ===== FINE RIGA INTERRUTTORE ===== *
+
+                    <label className="imp-switch" htmlFor="imp-n-settimana">
+                      <span className="imp-switch-text">
+                        <strong>Riepilogo settimanale</strong>
+                        <span>Ogni lunedì una mail con entrate, uscite e risparmio della settimana.</span>
+                      </span>
+                      <input id="imp-n-settimana" name="n_settimana" type="checkbox" defaultChecked />
+                      <span className="imp-switch-track" aria-hidden="true" />
+                    </label>
+
+                    <label className="imp-switch" htmlFor="imp-n-obiettivi">
+                      <span className="imp-switch-text">
+                        <strong>Promemoria obiettivi</strong>
+                        <span>Un promemoria quando un obiettivo di risparmio è indietro rispetto al previsto.</span>
+                      </span>
+                      <input id="imp-n-obiettivi" name="n_obiettivi" type="checkbox" />
+                      <span className="imp-switch-track" aria-hidden="true" />
+                    </label>
+
+                    <label className="imp-switch" htmlFor="imp-n-novita">
+                      <span className="imp-switch-text">
+                        <strong>Novità e aggiornamenti</strong>
+                        <span>Le nuove funzioni di Finance, senza spam.</span>
+                      </span>
+                      <input id="imp-n-novita" name="n_novita" type="checkbox" />
+                      <span className="imp-switch-track" aria-hidden="true" />
+                    </label>
+                  </div>
+
+                  <div className="imp-actions">
+                    <button type="submit" className="imp-btn-primary">Salva notifiche</button>
+                  </div>
+                </form>
+              </section>*/}
+
+            {/* =========================== Sicurezza =========================== */}
+            <section id="sicurezza" className="imp-card" aria-labelledby="imp-t-sicurezza">
+              <div className="imp-card-head">
+                <h2 id="imp-t-sicurezza">Sicurezza</h2>
+                <p>Proteggi il tuo account con una password forte.</p>
+              </div>
+
+              <form className="imp-form">
+                <h3 className="imp-subhead">Cambia password</h3>
+
+                <div className="imp-field">
+                  <label htmlFor="imp-pw-attuale">Password attuale</label>
+                  <input id="imp-pw-attuale" name="password_attuale" type="password" autoComplete="current-password" placeholder="••••••••" />
+                </div>
+
+                <div className="imp-field-row">
+                  <div className="imp-field">
+                    <label htmlFor="imp-pw-nuova">Nuova password</label>
+                    <input id="imp-pw-nuova" name="password_nuova" type="password" autoComplete="new-password" minLength={6} placeholder="Almeno 6 caratteri" />
+                  </div>
+                  <div className="imp-field">
+                    <label htmlFor="imp-pw-conferma">Conferma nuova password</label>
+                    <input id="imp-pw-conferma" name="password_conferma" type="password" autoComplete="new-password" placeholder="Ripeti la password" />
+                  </div>
+                </div>
+
+                <div className="imp-actions">
+                  <button type="submit" className="imp-btn-primary">Aggiorna password</button>
+                </div>
+              </form>
+
+              {/*<hr className="imp-sep" />
+
+                <form className="imp-form"> TODO
+                  <div className="imp-switch-list">
+                    <label className="imp-switch" htmlFor="imp-2fa">TODO
+                      <span className="imp-switch-text">
+                        <strong>Verifica in due passaggi</strong>
+                        <span>Oltre alla password ti chiediamo un codice temporaneo a ogni accesso.</span>
+                      </span>
+                      <input id="imp-2fa" name="due_passaggi" type="checkbox" />
+                      <span className="imp-switch-track" aria-hidden="true" />
+                    </label>
+                  </div>
+                </form>*/}
+
+              <hr className="imp-sep" />
+
+              <div className="imp-device">
+                <span className="imp-device-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" className="imp-ic">
+                    <path d="M4 5h16v11H4zM2 20h20M9 16v4M15 16v4" />
+                  </svg>
+                </span>
+                <div className="imp-device-text">
+                  <strong>Questo dispositivo</strong>
+                  <span>Sessione attiva ora</span>
+                </div>
+                {/* TODO: collegare "Esci da tutti i dispositivi" */}
+                <button className="imp-btn-secondary small">Esci da tutti i dispositivi</button>
+              </div>
+            </section>
+
+            {/* ========================= Dati e privacy ======================== */}
+            <section id="dati" className="imp-card" aria-labelledby="imp-t-dati">
+              <div className="imp-card-head">
+                <h2 id="imp-t-dati">Dati e privacy</h2>
+                <p>Tieni sotto controllo le informazioni che hai inserito.</p>
+              </div>
+
+              <div className="imp-row">
+                <div className="imp-row-text">
+                  <strong>Esporta i tuoi dati</strong>
+                  <span>Scarica conti, movimenti e budget in un unico file.</span>
+                </div>
+                {/* TODO: collegare l'esportazione */}
+                <a href="#" className="imp-btn-secondary">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="imp-ic">
+                    <path d="M12 3v12M7 10l5 5 5-5M4 20h16" />
+                  </svg>
+                  Esporta
+                </a>
+              </div>
+
+              <div className="imp-row danger">
+                <div className="imp-row-text">
+                  <strong>Elimina account</strong>
+                  <span>Cancella per sempre il tuo account e tutti i dati collegati. Non si può annullare.</span>
+                </div>
+                <a href="#elimina-account" className="imp-btn-danger-outline">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="imp-ic">
+                    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                  </svg>
+                  Elimina account
+                </a>
+              </div>
+            </section>
+          </div>
         </div>
+      </div>
 
-        <div className="manut-illustration" aria-hidden="true">
-          <svg viewBox="0 0 80 64" width="88" height="70">
-            {/* ingranaggio grande */}
-            <g className="manut-gear manut-gear-big">
-              <circle cx="28" cy="32" r="8" />
-              <path d="M28 12v6M28 46v6M8 32h6M42 32h6M13.9 17.9l4.2 4.2M37.9 41.9l4.2 4.2M13.9 46.1l4.2-4.2M37.9 22.1l4.2-4.2" />
-              <circle cx="28" cy="32" r="16" />
-            </g>
-            {/* ingranaggio piccolo */}
-            <g className="manut-gear manut-gear-small">
-              <circle cx="56" cy="20" r="4.5" />
-              <path d="M56 8v3M56 29v3M44 20h3M65 20h3M47.5 11.5l2.1 2.1M62.4 26.4l2.1 2.1M47.5 28.5l2.1-2.1M62.4 13.6l2.1-2.1" />
-              <circle cx="56" cy="20" r="9" />
-            </g>
-          </svg>
-        </div>
+      {/* Conferma "Elimina account": si apre con :target, nessun JavaScript */}
+      <div id="elimina-account" className="imp-modal" role="alertdialog" aria-modal="true" aria-labelledby="imp-elimina-titolo" aria-describedby="imp-elimina-testo">
+        <a href="#" className="imp-modal-backdrop" aria-label="Chiudi finestra" tabIndex={-1} />
 
-        <span className="manut-badge" role="status">
-          <span className="manut-dot" aria-hidden="true" />
-          Manutenzione in corso
-        </span>
-
-        <h1 className="manut-title">Torniamo presto</h1>
-        <p className="manut-text">
-          Stiamo aggiornando Finance per offrirti un&apos;esperienza migliore. I tuoi dati sono al sicuro e
-          tutto sarà di nuovo disponibile a breve.
-        </p>
-
-        <div className="manut-progress" role="progressbar" aria-label="Aggiornamento in corso" />
-        <p className="manut-note">Aggiornamento in corso…</p>
-
-        <div className="manut-actions">
-          {/* Link a se stessa: ricarica la pagina senza usare JavaScript */}
-          <a href="/" className="manut-btn primary">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7" />
+        <div className="imp-modal-box">
+          <span className="imp-confirm-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" className="imp-ic">
+              <path d="M12 9v4M12 17h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" />
             </svg>
-            Torna alla Home
-          </a>
-        </div>
+          </span>
+          <h2 id="imp-elimina-titolo" className="imp-modal-title">Eliminare l&apos;account?</h2>
+          <p id="imp-elimina-testo" className="imp-modal-sub">
+            Verranno cancellati per sempre conti, movimenti, budget e obiettivi. Questa operazione non può essere annullata.
+          </p>
 
-        <p className="manut-footer">Grazie per la pazienza. Il team di Finance</p>
+          {/* TODO: collegare l'eliminazione dell'account */}
+          <form className="imp-confirm-form">
+            <label htmlFor="imp-conferma-testo">Per confermare, scrivi <strong>ELIMINA</strong></label>
+            <input id="imp-conferma-testo" name="conferma" type="text" autoComplete="off" placeholder="ELIMINA" required pattern="ELIMINA" />
+
+            <div className="imp-modal-actions">
+              <a href="#" className="imp-btn-secondary">Annulla</a>
+              <button type="submit" className="imp-btn-danger">Elimina definitivamente</button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   );
