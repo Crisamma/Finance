@@ -234,10 +234,6 @@ main {
   font-size: 13px;
 }
 
-.dash-pos {
-  color: var(--pos);
-}
-
 .dash-header {
   display: flex;
   flex-wrap: wrap;
@@ -788,6 +784,12 @@ main {
 
 .dash-amt.pos {
   color: var(--pos);
+}
+.dash-amt.neg {
+  color: var(--neg);
+}
+.dash-amt.neutral {
+  color: var(--foreground);
 }
 
 /* budget */
@@ -2553,6 +2555,7 @@ main {
 .colore-cat-viaggi { background: #079bb5; }
 .colore-cat-ristorazione { background: #d17d00; }
 .colore-cat-trasferimenti { background: #675069; }
+
 
 .mov-acc {
   font-size: 13px;

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Sidebar from "../sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { supabase } from "@/lib/supabase/client";
+import GraficoVariazione from "@/components/GraficoVariazione";
 
 export default function Conti() {
 
@@ -376,14 +377,14 @@ export default function Conti() {
                   </div>
                 </div>
                 <div className="conti-balance">{valutaConto(conto.Valuta)} {conto.Saldo}</div>
-                {/*<div className="conti-card-foot"> TODO grafico e percentuale dell'andamento del conto
+                <div className="conti-card-foot">
                   <span className="conti-badge pos">+1,8% questo mese</span>
-                  <span className="conti-muted">Aggiornato oggi</span>
+                  {/*<span className="conti-muted">Aggiornato oggi</span> TODO */}
                 </div>
                 <svg viewBox="0 0 160 36" width="100%" height="36" preserveAspectRatio="none" aria-hidden="true" className="conti-spark">
                   <polygon points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9 160,36 0,36" style={{ fill: "var(--pos-line)", fillOpacity: 0.12 }} />
                   <polyline points="0,26 23,24 46,27 69,20 92,22 115,15 138,13 160,9" style={{ fill: "none", stroke: "var(--pos-line)", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }} vectorEffect="non-scaling-stroke" />
-                </svg>*/}
+                </svg>
               </article>
             ))}
 

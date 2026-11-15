@@ -481,10 +481,10 @@ export default function Movimenti() {
         return "colore-altro";
     }
   }
-
+  
+  // Recuperiamo i movimenti da Supabase
   useEffect(() => {
     async function caricaMovimenti() {
-      // Recuperiamo i movimenti da Supabase
       const { data, error } = await supabase
         .from("movimenti")
         .select("*");
