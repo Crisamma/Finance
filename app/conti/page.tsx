@@ -376,7 +376,7 @@ export default function Conti() {
                   </div>
                 </div>
                 <div className="conti-balance">{valutaConto(conto.Valuta)} {conto.Saldo}</div>
-                {/*<div className="conti-card-foot">
+                {/*<div className="conti-card-foot"> TODO grafico e percentuale dell'andamento del conto
                   <span className="conti-badge pos">+1,8% questo mese</span>
                   <span className="conti-muted">Aggiornato oggi</span>
                 </div>

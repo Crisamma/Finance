@@ -1,6 +1,6 @@
 CONTI:
 [] Inserire ORDER BY Saldo, nome
-[]
+[] Cambiare posizione card conti a piacimento
 
 
 HOME:

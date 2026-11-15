@@ -2320,6 +2320,7 @@ main {
 }
  
 .mov-badge.pos { background: var(--pos-bg); color: var(--pos); }
+.mov-badge.neg { background: var(--neg-bg); color: var(--neg); }
  
 .mov-chip {
   width: 40px;
@@ -2418,6 +2419,7 @@ main {
   font-weight: 600;
   text-decoration: none;
   transition: background-color 0.15s, color 0.15s;
+  cursor: pointer;
 }
  
 .mov-pill:hover {
@@ -2528,7 +2530,30 @@ main {
 .mov-cat .c-arancio { background: #c97a06; }
 .mov-cat .c-viola { background: #8b5cf6; }
 .mov-cat .c-grigio { background: #64748b; }
- 
+
+.colore-trasferimenti { background: #eeeaf0; color: #675069; }
+.colore-svago { background: #eee7ff; color: #8b5cf6; }
+.colore-trasporti { background: #e5edff; color: #3b6fe0; }
+.colore-salute { background: #f8e7e6; color: #9f130e; }
+.colore-altro { background: #e9edf2; color: #64748b; }
+.colore-casa { background: #fff3d8; color: #c18a00; }
+.colore-alimentari { background: #e4f4eb; color: #0c884a; }
+.colore-ristorazione { background: #fff0dc; color: #d17d00; }
+.colore-stipendio { background: #e0f5eb; color: #10B981; }
+.colore-viaggi { background: #e0f8fc; color: #079bb5; }
+
+
+.colore-cat-stipendio { background: #10B981; }
+.colore-cat-alimentari { background: #0c884a; }
+.colore-cat-altro { background: #64748b; }
+.colore-cat-casa { background: #c18a00; }
+.colore-cat-trasporti { background: #3b6fe0; }
+.colore-cat-salute { background: #9f130e; }
+.colore-cat-svago { background: #8b5cf6; }
+.colore-cat-viaggi { background: #079bb5; }
+.colore-cat-ristorazione { background: #d17d00; }
+.colore-cat-trasferimenti { background: #675069; }
+
 .mov-acc {
   font-size: 13px;
   color: var(--muted);
@@ -2560,6 +2585,10 @@ main {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.mov-pager button{
+  cursor: pointer;
 }
  
 .mov-page-btn {
@@ -2680,7 +2709,7 @@ main {
   box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 14px 32px rgba(15, 23, 42, 0.16);
 }
  
-.mov-dropdown a {
+.mov-dropdown button {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2692,21 +2721,22 @@ main {
   font-weight: 600;
   text-decoration: none;
   transition: background-color 0.15s;
+  cursor: pointer;
 }
  
-.mov-dropdown a:hover {
+.mov-dropdown button:hover {
   background: var(--chip);
 }
  
-.mov-dropdown a.danger {
+.mov-dropdown button.danger {
   color: var(--neg);
 }
  
-.mov-dropdown a.danger:hover {
+.mov-dropdown button.danger:hover {
   background: var(--neg-bg);
 }
  
-.mov-dropdown a:focus-visible {
+.mov-dropdown button:focus-visible {
   outline: 2px solid #3b6fe0;
   outline-offset: -2px;
 }

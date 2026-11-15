@@ -15,7 +15,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Sidebar username={username} />
+      <Sidebar/>
 
       <div className="main-content">
         {/* Saluto, periodo, card e grafici vivono in DashboardCard (client component) */}
